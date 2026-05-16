@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>Katharinas Svenska — Lernapp</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ── KONFIGURATION — hier trägst du deine Client-ID ein ── */
+/* Schritt am PC: Google Cloud Console → Client-ID kopieren → hier einfügen */
+
+:root {
+  --bg:#F7F3EC; --white:#FFFEFB; --ink:#1A1612; --ink2:#4A4035; --ink3:#8C7A65;
+  --gold:#B8860B; --gold-bg:#FDF6DC; --gold-light:#EDD97A;
+  --green:#2D6A40; --green-bg:#EAF4EE; --green-light:#9ECFAD;
+  --blue:#1A4F7A; --blue-bg:#EAF2FB; --blue-light:#9FC5E8;
+  --red:#8B2020; --red-bg:#FBEDEC;
+  --sage:#4A7055; --sage-bg:#EDF3EE; --sage-light:#B8D4BE;
+  --border:#DDD0BC; --shadow:0 2px 18px rgba(26,22,18,0.08);
+  --radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{font-size:16px;}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--ink);min-height:100vh;overflow-x:hidden;}
+
+/* ── LOGIN SCREEN ── */
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;text-align:center;background:var(--ink);}
+.login-logo{font-family:'Playfair Display',serif;font-size:3rem;margin-bottom:0.5rem;}
+.login-title{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--white);margin-bottom:0.4rem;}
+.login-subtitle{font-size:0.85rem;color:rgba(255,255,255,0.5);margin-bottom:2.5rem;line-height:1.6;}
+.login-card{background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.1);border-radius:16px;padding:2rem;max-width:360px;width:100%;}
+.login-card h2{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--white);margin-bottom:0.5rem;}
+.login-card p{font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:1.5rem;line-height:1.6;}
+.google-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px 20px;border-radius:10px;border:none;background:var(--white);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 16px rgba(0,0,0,0.2);}
+.google-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,0.3);}
+.google-btn svg{width:20px;height:20px;flex-shrink:0;}
+.login-note{margin-top:1.5rem;font-size:0.75rem;color:rgba(255,255,255,0.3);line-height:1.6;}
+.setup-hint{margin-top:1rem;background:rgba(184,134,11,0.15);border:1px solid rgba(184,134,11,0.3);border-radius:8px;padding:0.75rem;font-size:0.78rem;color:var(--gold-light);line-height:1.6;text-align:left;}
+.setup-hint strong{display:block;margin-bottom:4px;}
+
+/* ── LADE SCREEN ── */
+.loading-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:var(--ink);color:var(--white);}
+.loading-spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--gold-light);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:1rem;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:0.9rem;color:rgba(255,255,255,0.6);}
+.loading-step{font-size:0.78rem;color:rgba(255,255,255,0.35);margin-top:0.4rem;}
+
+/* ── FEHLER SCREEN ── */
+.error-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;background:var(--ink);color:var(--white);text-align:center;}
+.error-icon{font-size:3rem;margin-bottom:1rem;}
+.error-title{font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:0.5rem;}
+.error-msg{font-size:0.85rem;color:rgba(255,255,255,0.5);margin-bottom:1.5rem;line-height:1.6;max-width:320px;}
+.retry-btn{padding:10px 24px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.15s;}
+.retry-btn:hover{background:rgba(255,255,255,0.1);}
+
+/* ── HAUPT APP ── */
+.app-wrap{display:none;}
+.app-header{background:var(--ink);color:var(--white);padding:0.9rem 1.25rem 0;position:sticky;top:0;z-index:200;box-shadow:0 2px 16px rgba(0,0,0,0.3);}
+.header-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:0.75rem;}
+.header-title h1{font-family:'Playfair Display',serif;font-size:clamp(1rem,3.5vw,1.35rem);font-weight:700;}
+.header-title p{font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:1px;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.lesson-select{background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:8px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:600;padding:6px 10px;cursor:pointer;outline:none;max-width:180px;}
+.lesson-select option{background:#1A1612;color:var(--white);}
+.logout-btn{background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:8px;color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif;font-size:0.75rem;font-weight:600;padding:6px 10px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.logout-btn:hover{background:rgba(255,255,255,0.15);color:var(--white);}
+
+.tab-bar{background:var(--white);border-bottom:1.5px solid var(--border);display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:sticky;top:72px;z-index:99;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;padding:0 0.9rem;height:46px;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;color:var(--ink3);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:4px;transition:all 0.15s;}
+.tab-btn:hover{color:var(--ink);background:var(--bg);}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);background:var(--gold-bg);}
+
+.content{max-width:860px;margin:0 auto;padding:1.25rem 1rem 3rem;}
+.tab-panel{display:none;animation:fadeIn 0.2s ease;}
+.tab-panel.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── STARTSCREEN ── */
+.lesson-picker-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:2rem;}
+.lesson-picker-screen h2{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--ink);margin-bottom:0.5rem;text-align:center;}
+.lesson-picker-screen p{color:var(--ink3);font-size:0.9rem;margin-bottom:2rem;text-align:center;}
+.lesson-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;width:100%;max-width:600px;}
+.lesson-card{background:var(--white);border:2px solid var(--border);border-radius:14px;padding:1.5rem;cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow);}
+.lesson-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 24px rgba(184,134,11,0.15);}
+.lesson-card h3{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--ink);margin-bottom:0.4rem;}
+.lesson-card p{font-size:0.8rem;color:var(--ink3);line-height:1.5;}
+.lesson-meta{display:flex;gap:6px;margin-top:0.75rem;flex-wrap:wrap;}
+.lesson-meta span{font-size:0.7rem;padding:2px 8px;border-radius:10px;background:var(--gold-bg);color:var(--gold);font-weight:700;border:1px solid var(--gold-light);}
+.lesson-loading{text-align:center;padding:2rem;color:var(--ink3);font-size:0.9rem;}
+
+/* ── TEXT ── */
+.text-section{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:0.875rem;overflow:hidden;box-shadow:var(--shadow);}
+.text-section-header{display:flex;align-items:center;justify-content:space-between;padding:0.65rem 1rem;background:var(--gold-bg);border-bottom:1.5px solid var(--gold-light);gap:8px;}
+.section-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);}
+.text-body{padding:1rem 1.1rem;font-family:'Playfair Display',serif;font-size:clamp(0.88rem,2.5vw,1rem);line-height:2;color:var(--ink);}
+.speak-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-family:'DM Sans',sans-serif;font-size:0.75rem;font-weight:700;color:var(--ink2);cursor:pointer;transition:all 0.15s;flex-shrink:0;}
+.speak-btn:hover{background:var(--sage-bg);border-color:var(--sage-light);color:var(--sage);}
+.action-bar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;}
+.action-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;color:var(--ink2);cursor:pointer;transition:all 0.15s;}
+.action-btn:hover{background:var(--sage-bg);border-color:var(--sage-light);color:var(--sage);}
+
+/* ── GLOSSAR ── */
+.search-bar{margin-bottom:1rem;}
+.search-bar input{width:100%;padding:10px 16px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);font-family:'DM Sans',sans-serif;font-size:0.95rem;color:var(--ink);outline:none;transition:border-color 0.15s;}
+.search-bar input:focus{border-color:var(--gold);}
+.info-bar{background:var(--blue-bg);border:1.5px solid var(--blue-light);border-radius:10px;padding:9px 14px;font-size:0.83rem;color:var(--ink2);margin-bottom:1rem;line-height:1.5;}
+.glossary-item{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:0.7rem;overflow:hidden;box-shadow:var(--shadow);transition:border-color 0.15s;}
+.glossary-item:hover{border-color:var(--gold);}
+.glossary-header{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1rem;gap:10px;cursor:pointer;}
+.glossary-main{display:flex;align-items:baseline;gap:10px;flex:1;flex-wrap:wrap;}
+.gloss-sv{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--ink);}
+.gloss-de{font-size:0.85rem;color:var(--ink2);}
+.gloss-type{font-size:0.68rem;padding:2px 8px;border-radius:10px;background:var(--gold-bg);color:var(--gold);font-weight:700;border:1px solid var(--gold-light);}
+.glossary-details{display:none;padding:0 1rem 0.875rem;border-top:1px solid var(--border);}
+.glossary-details.open{display:block;}
+.detail-row{margin-top:0.55rem;font-size:0.85rem;line-height:1.6;}
+.detail-label{font-weight:700;color:var(--ink3);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:2px;}
+.detail-value{color:var(--ink2);}
+.detail-example{font-family:'Playfair Display',serif;font-style:italic;color:var(--blue);}
+.glossary-speak-row{display:flex;gap:6px;margin-top:0.7rem;flex-wrap:wrap;}
+
+/* ── VOCAB TABLE ── */
+.sort-bar{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;}
+.sort-btn{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:700;color:var(--ink2);cursor:pointer;transition:all 0.15s;min-height:34px;}
+.sort-btn.active{background:var(--ink);color:white;border-color:var(--ink);}
+.vocab-table{width:100%;border-collapse:collapse;background:var(--white);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);border:1.5px solid var(--border);}
+.vocab-table th{background:var(--ink);color:white;padding:9px 12px;font-size:0.78rem;text-align:left;font-weight:700;letter-spacing:0.05em;}
+.vocab-table td{padding:8px 12px;font-size:0.88rem;border-bottom:1px solid var(--border);vertical-align:middle;}
+.vocab-table tr:last-child td{border-bottom:none;}
+.vocab-table tr:nth-child(even) td{background:var(--bg);}
+.vocab-sv{font-family:'Playfair Display',serif;font-weight:700;color:var(--sage);}
+.vocab-de{color:var(--ink2);}
+.vocab-type-badge{font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:700;border:1px solid;}
+.type-noun{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-light);}
+.type-verb{background:var(--green-bg);color:var(--green);border-color:var(--green-light);}
+.type-adj{background:#F3EEF8;color:#6C3483;border-color:#D7BEF0;}
+.type-adv{background:var(--gold-bg);color:var(--gold);border-color:var(--gold-light);}
+.type-phrase{background:var(--red-bg);color:var(--red);border-color:#F0C0B8;}
+
+/* ── VERB TABLE ── */
+.verb-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--radius);box-shadow:var(--shadow);}
+.verb-table{width:100%;min-width:500px;border-collapse:collapse;background:var(--white);border:1.5px solid var(--border);}
+.verb-table th{background:var(--ink);color:white;padding:9px 12px;font-size:0.78rem;text-align:left;font-weight:700;letter-spacing:0.05em;}
+.verb-table td{padding:8px 12px;font-size:0.88rem;border-bottom:1px solid var(--border);vertical-align:middle;}
+.verb-table tr:last-child td{border-bottom:none;}
+.verb-table tr:nth-child(even) td{background:var(--bg);}
+.verb-table .strong-row td{background:#EFF4F0!important;}
+.verb-table .strong-row td:first-child{border-left:3px solid var(--sage);}
+.verb-inf{font-family:'Playfair Display',serif;font-weight:700;color:var(--sage);}
+.verb-past{font-family:'Playfair Display',serif;font-weight:700;color:var(--gold);}
+.verb-sup{font-family:'Playfair Display',serif;font-weight:700;color:var(--blue);}
+.strong-badge{font-size:0.62rem;padding:1px 6px;border-radius:6px;background:var(--sage-bg);color:var(--sage);font-weight:800;border:1px solid var(--sage-light);margin-left:4px;}
+.speak-mini{background:none;border:1.5px solid var(--border);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:0.82rem;transition:all 0.15s;}
+.speak-mini:hover{background:var(--sage-bg);border-color:var(--sage-light);}
+
+/* ── BIRKENBIHL ── */
+.birkenbühl-info{background:var(--gold-bg);border:1.5px solid var(--gold-light);border-radius:var(--radius);padding:0.875rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:var(--ink2);line-height:1.6;}
+.birkenbühl-info strong{color:var(--gold);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:4px;}
+.decode-section{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:0.875rem;overflow:hidden;box-shadow:var(--shadow);}
+.decode-section-header{display:flex;align-items:center;padding:0.65rem 1rem;background:var(--gold-bg);border-bottom:1.5px solid var(--gold-light);}
+.decode-pairs{padding:0.5rem 0;}
+.decode-pair{display:flex;flex-direction:column;padding:0.7rem 1rem;border-bottom:1px solid var(--border);transition:background 0.12s;}
+.decode-pair:last-child{border-bottom:none;}
+.decode-pair:hover{background:var(--bg);}
+.decode-pair-inner{display:flex;align-items:flex-start;gap:10px;}
+.decode-speak{background:none;border:1.5px solid var(--border);border-radius:8px;padding:4px 9px;cursor:pointer;font-size:0.82rem;flex-shrink:0;margin-top:2px;transition:all 0.15s;}
+.decode-speak:hover{background:var(--sage-bg);border-color:var(--sage-light);}
+.decode-texts{flex:1;}
+.decode-sv{font-family:'Playfair Display',serif;font-size:clamp(0.88rem,2.4vw,1rem);line-height:1.7;color:var(--ink);}
+.decode-de{font-size:clamp(0.8rem,2.1vw,0.88rem);line-height:1.6;color:var(--blue);font-style:italic;margin-top:3px;padding-left:0.75rem;border-left:3px solid var(--blue-light);}
+
+@media(max-width:600px){.content{padding:1rem 0.75rem 3rem;}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════ -->
+<div class="login-screen" id="login-screen">
+  <div class="login-logo">🇸🇪</div>
+  <h1 class="login-title">Katharinas Svenska</h1>
+  <p class="login-subtitle">Interaktives Lernprogramm<br>Birkenbihl-Methode · Niveau A1–A2</p>
+
+  <div class="login-card">
+    <h2>Anmelden</h2>
+    <p>Melde dich mit deinem Google-Konto an, um auf deine Lerninhalte zuzugreifen.</p>
+    <button class="google-btn" onclick="startGoogleLogin()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Mit Google anmelden
+    </button>
+
+    <div class="setup-hint" id="setup-hint">
+      <strong>⚙️ Einrichtung erforderlich</strong>
+      Die Google Client-ID wurde noch nicht eingetragen. Bitte am PC die Google Cloud Console öffnen und die Client-ID in den Code einfügen (siehe Kommentar im HTML).
+    </div>
+
+    <p class="login-note">🔒 Deine Daten bleiben privat auf deinem Google Drive. Die App liest nur den Ordner "Katharinas Svenska Lernapp".</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     LADE SCREEN
+══════════════════════════════════════════ -->
+<div class="loading-screen" id="loading-screen">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Lerninhalte werden geladen…</div>
+  <div class="loading-step" id="loading-step">Verbindung zu Google Drive…</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FEHLER SCREEN
+══════════════════════════════════════════ -->
+<div class="error-screen" id="error-screen">
+  <div class="error-icon">⚠️</div>
+  <div class="error-title">Etwas ist schiefgelaufen</div>
+  <div class="error-msg" id="error-msg">Die Lerninhalte konnten nicht geladen werden.</div>
+  <button class="retry-btn" onclick="location.reload()">↺ Erneut versuchen</button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     HAUPT APP
+══════════════════════════════════════════ -->
+<div class="app-wrap" id="app-wrap">
+  <div class="app-header">
+    <div class="header-top">
+      <div class="header-title">
+        <h1>🇸🇪 Katharinas Svenska</h1>
+        <p id="user-info">Interaktives Lernprogramm</p>
+      </div>
+      <div class="header-right">
+        <select class="lesson-select" id="lesson-select" onchange="loadLesson(this.value)">
+          <option value="">— Text wählen —</option>
+        </select>
+        <button class="logout-btn" onclick="logout()">Abmelden</button>
+      </div>
+    </div>
+    <div class="tab-bar" id="tab-bar" style="display:none">
+      <button class="tab-btn active" data-tab="text">📖 Text</button>
+      <button class="tab-btn" data-tab="glossar">📚 Glossar</button>
+      <button class="tab-btn" data-tab="sv-de">🔤 SV→DE</button>
+      <button class="tab-btn" data-tab="de-sv">🔤 DE→SV</button>
+      <button class="tab-btn" data-tab="verben">📝 Alle Verben</button>
+      <button class="tab-btn" data-tab="oregelbundna">⭐ Oregelbundna</button>
+      <button class="tab-btn" data-tab="dekodierung">🔵 Dekodierung</button>
+    </div>
+  </div>
+
+  <div class="content" id="main-content">
+    <div class="lesson-picker-screen" id="picker-screen">
+      <h2>Welchen Text möchtest du lernen?</h2>
+      <p>Wähle einen Text oben oder klicke direkt hier</p>
+      <div class="lesson-cards" id="lesson-cards">
+        <div class="lesson-loading">⏳ Texte werden geladen…</div>
+      </div>
+    </div>
+    <div id="lesson-panels" style="display:none">
+      <div id="tab-text" class="tab-panel active"></div>
+      <div id="tab-glossar" class="tab-panel">
+        <div class="search-bar"><input type="search" id="glossar-search" placeholder="🔍 Sök efter ett ord..." oninput="filterGlossar()" autocomplete="off"/></div>
+        <div class="info-bar">ℹ️ Klicka på ett ord för att se definition, exempelmening och uttal.</div>
+        <div id="glossar-list"></div>
+      </div>
+      <div id="tab-sv-de" class="tab-panel">
+        <div class="sort-bar">
+          <button class="sort-btn active" onclick="buildVocabTable(this,'sv','sv-de-body')">A–Z (Svenska)</button>
+          <button class="sort-btn" onclick="buildVocabTable(this,'topic','sv-de-body')">Tema</button>
+          <button class="sort-btn" onclick="buildVocabTable(this,'type','sv-de-body')">Wortart</button>
+        </div>
+        <table class="vocab-table"><thead><tr><th>Svenska 🇸🇪</th><th>Deutsch 🇩🇪</th><th>Wortart</th><th>🔊</th></tr></thead><tbody id="sv-de-body"></tbody></table>
+      </div>
+      <div id="tab-de-sv" class="tab-panel">
+        <div class="sort-bar">
+          <button class="sort-btn active" onclick="buildVocabTableDe(this,'de','de-sv-body')">A–Z (Deutsch)</button>
+          <button class="sort-btn" onclick="buildVocabTableDe(this,'topic','de-sv-body')">Tema</button>
+          <button class="sort-btn" onclick="buildVocabTableDe(this,'type','de-sv-body')">Wortart</button>
+        </div>
+        <table class="vocab-table"><thead><tr><th>Deutsch 🇩🇪</th><th>Svenska 🇸🇪</th><th>Wortart</th><th>🔊</th></tr></thead><tbody id="de-sv-body"></tbody></table>
+      </div>
+      <div id="tab-verben" class="tab-panel">
+        <div class="sort-bar">
+          <button class="sort-btn active" onclick="buildVerbTable(this,'all','verb-body-all')">Alla</button>
+          <button class="sort-btn" onclick="buildVerbTable(this,'strong','verb-body-all')">⭐ Oregelbundna</button>
+          <button class="sort-btn" onclick="buildVerbTable(this,'weak','verb-body-all')">Regelbundna</button>
+        </div>
+        <div class="info-bar">🔊 Klicka för att höra: infinitiv — preteritum — supinum</div>
+        <div class="verb-table-wrap"><table class="verb-table"><thead><tr><th>Infinitiv</th><th>Preteritum</th><th>Supinum</th><th>Deutsch</th><th>Exempel</th><th>🔊</th></tr></thead><tbody id="verb-body-all"></tbody></table></div>
+      </div>
+      <div id="tab-oregelbundna" class="tab-panel">
+        <div class="info-bar">⭐ Alla oregelbundna (starka) verb. Klicka 🔊 för att höra infinitiv — preteritum — supinum.</div>
+        <div class="action-bar">
+          <button class="action-btn" onclick="speakAllStrongVerbs()">🔊 Alla verb vorlesen</button>
+          <button class="action-btn" onclick="stopSpeaking()">⏹ Stopp</button>
+        </div>
+        <div class="verb-table-wrap"><table class="verb-table"><thead><tr><th>Infinitiv</th><th>Preteritum</th><th>Supinum</th><th>Deutsch</th><th>Exempel</th><th>🔊</th></tr></thead><tbody id="verb-body-strong"></tbody></table></div>
+      </div>
+      <div id="tab-dekodierung" class="tab-panel">
+        <div class="birkenbühl-info">
+          <strong>🔵 Birkenbihl-Dekodierung</strong>
+          Jeder Satz wird wortgetreu ins Deutsche übertragen — nicht schön, sondern exakt. So erkennst du direkt wie Schwedisch funktioniert. Klicke 🔊 um den schwedischen Satz zu hören.
+        </div>
+        <div id="dekodierung-content"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async></script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// ▌ KONFIGURATION — hier trägst du deine Werte ein ▌
+// ═══════════════════════════════════════════════════════════════
+
+var CONFIG = {
+  // 1. Deine Google Client-ID — am PC in der Google Cloud Console erstellen
+  //    Format: "xxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com"
+  CLIENT_ID: '816235046461-mina7vpib1bmev8avb8k6rdjejn7t3tc.apps.googleusercontent.com',
+
+  // 2. Die ID des Drive-Ordners — steht in der URL wenn du den Ordner öffnest
+  //    https://drive.google.com/drive/folders/DIESE_ID_HIER
+  FOLDER_ID: '1VQGTuW4bp-VywA7bt0n-YR7rIXtl6AAx',
+
+  // 3. Berechtigungen — nur lesen, nicht ändern
+  SCOPE: 'https://www.googleapis.com/auth/drive.readonly'
+};
+
+// ═══════════════════════════════════════════════════════════════
+// ▌ ZUSTAND ▌
+// ═══════════════════════════════════════════════════════════════
+var accessToken = null;
+var currentLesson = null;
+var lessonIndex = [];
+var lessonCache = {};
+
+// ═══════════════════════════════════════════════════════════════
+// ▌ SCREENS ▌
+// ═══════════════════════════════════════════════════════════════
+function showScreen(name) {
+  ['login-screen','loading-screen','error-screen','app-wrap'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.style.display = (id === name) ? (name === 'app-wrap' ? 'block' : 'flex') : 'none';
+    }
+  });
+}
+
+function showError(msg) {
+  document.getElementById('error-msg').textContent = msg;
+  showScreen('error-screen');
+}
+
+function setLoadingStep(text) {
+  document.getElementById('loading-step').textContent = text;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▌ GOOGLE LOGIN ▌
+// ═══════════════════════════════════════════════════════════════
+function startGoogleLogin() {
+  if (CONFIG.CLIENT_ID === 'HIER_DEINE_CLIENT_ID_EINTRAGEN') {
+    alert('⚙️ Bitte zuerst die Google Client-ID in den Code eintragen.\n\nSiehe Kommentar im HTML-Code unter CONFIG.CLIENT_ID.');
+    return;
+  }
+
+  var client = google.accounts.oauth2.initTokenClient({
+    client_id: CONFIG.CLIENT_ID,
+    scope: CONFIG.SCOPE,
+    callback: function(response) {
+      if (response.error) {
+        showError('Anmeldung fehlgeschlagen: ' + response.error);
+        return;
+      }
+      accessToken = response.access_token;
+      onLoginSuccess();
+    }
+  });
+  client.requestAccessToken();
+}
+
+function logout() {
+  if (accessToken) {
+    google.accounts.oauth2.revoke(accessToken);
+  }
+  accessToken = null;
+  currentLesson = null;
+  lessonCache = {};
+  showScreen('login-screen');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▌ DRIVE API ▌
+// ═══════════════════════════════════════════════════════════════
+
+// Datei-ID anhand des Namens im Ordner suchen
+function findFile(name) {
+  var query = "name='" + name + "' and '" + CONFIG.FOLDER_ID + "' in parents and trashed=false";
+  var url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(query) + '&fields=files(id,name)';
+  return fetch(url, {
+    headers: { Authorization: 'Bearer ' + accessToken }
+  }).then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.files && data.files.length > 0) return data.files[0].id;
+      throw new Error('Datei nicht gefunden: ' + name);
+    });
+}
+
+// Datei-Inhalt als JSON laden
+function loadJson(fileId) {
+  return fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
+    headers: { Authorization: 'Bearer ' + accessToken }
+  }).then(function(r) { return r.json(); });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▌ NACH DEM LOGIN ▌
+// ═══════════════════════════════════════════════════════════════
+function onLoginSuccess() {
+  showScreen('loading-screen');
+  setLoadingStep('Verbindung zu Google Drive…');
+
+  // index.json laden → Lektionsliste aufbauen
+  findFile('index.json')
+    .then(function(fileId) {
+      setLoadingStep('Lektionsübersicht wird geladen…');
+      return loadJson(fileId);
+    })
+    .then(function(data) {
+      lessonIndex = data.lektionen || [];
+      buildLessonPicker();
+      showScreen('app-wrap');
+    })
+    .catch(function(err) {
+      showError('index.json konnte nicht geladen werden. Bitte prüfe ob der Ordner "Katharinas Svenska Lernapp" auf deinem Drive existiert. (' + err.message + ')');
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▌ LEKTION LADEN ▌
+// ═══════════════════════════════════════════════════════════════
+function buildLessonPicker() {
+  // Dropdown befüllen
+  var select = document.getElementById('lesson-select');
+  lessonIndex.forEach(function(l) {
+    var opt = document.createElement('option');
+    opt.value = l.id;
+    opt.textContent = l.titel;
+    select.appendChild(opt);
+  });
+
+  // Karten bauen
+  var cards = document.getElementById('lesson-cards');
+  cards.innerHTML = '';
+  lessonIndex.forEach(function(l) {
+    cards.innerHTML += '<div class="lesson-card" onclick="loadLesson(\'' + l.id + '\');document.getElementById(\'lesson-select\').value=\'' + l.id + '\'">'
+      + '<h3>' + l.titel + '</h3>'
+      + '<p>' + l.beschreibung + '</p>'
+      + '<div class="lesson-meta"><span>' + l.abschnitte + ' Abschnitte</span><span>' + l.vokabeln + ' Vokabeln</span><span>' + l.niveau + '</span></div>'
+      + '</div>';
+  });
+}
+
+function loadLesson(id) {
+  if (!id) return;
+
+  // Aus Cache laden falls schon geladen
+  if (lessonCache[id]) {
+    currentLesson = lessonCache[id];
+    activateTab('text');
+    showLessonPanels();
+    buildAll();
+    return;
+  }
+
+  // Aus Drive laden
+  var lessonInfo = lessonIndex.find(function(l) { return l.id === id; });
+  if (!lessonInfo) return;
+
+  setLoadingStep('Text "' + lessonInfo.titel + '" wird geladen…');
+  showScreen('loading-screen');
+
+  findFile(lessonInfo.datei)
+    .then(function(fileId) { return loadJson(fileId); })
+    .then(function(data) {
+      lessonCache[id] = data;
+      currentLesson = data;
+      showScreen('app-wrap');
+      activateTab('text');
+      showLessonPanels();
+      buildAll();
+    })
+    .catch(function(err) {
+      showScreen('app-wrap');
+      showError('Text konnte nicht geladen werden: ' + err.message);
+    });
+}
+
+function showLessonPanels() {
+  document.getElementById('picker-screen').style.display = 'none';
+  document.getElementById('lesson-panels').style.display = 'block';
+  document.getElementById('tab-bar').style.display = 'flex';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ▌ TTS ▌
+// ═══════════════════════════════════════════════════════════════
+var ttsOk = ('speechSynthesis' in window);
+function speak(text, lang) {
+  if (!ttsOk) return;
+  window.speechSynthesis.cancel();
+  setTimeout(function() {
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = lang || 'sv-SE'; u.rate = 0.85;
+    window.speechSynthesis.speak(u);
+  }, 100);
+}
+function stopSpeaking() { if (ttsOk) try { window.speechSynthesis.cancel(); } catch(e){} }
+function safe(s) { return (s||'').replace(/'/g,"&#39;").replace(/"/g,'&quot;'); }
+
+// ═══════════════════════════════════════════════════════════════
+// ▌ APP AUFBAUEN ▌
+// ═══════════════════════════════════════════════════════════════
+function buildAll() {
+  buildTextTab();
+  buildGlossar(currentLesson.vocab);
+  buildVocabTable(document.querySelector('#tab-sv-de .sort-btn'), 'sv', 'sv-de-body');
+  buildVocabTableDe(document.querySelector('#tab-de-sv .sort-btn'), 'de', 'de-sv-body');
+  buildVerbTable(document.querySelector('#tab-verben .sort-btn'), 'all', 'verb-body-all');
+  buildStrongVerbsTab();
+  buildDekodierungTab();
+}
+
+function activateTab(id) {
+  stopSpeaking();
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  var panel = document.getElementById('tab-' + id);
+  if (panel) panel.classList.add('active');
+  var btn = document.querySelector('.tab-btn[data-tab="'+id+'"]');
+  if (btn) btn.classList.add('active');
+}
+
+// ── Text ──
+function buildTextTab() {
+  var html = '<div class="action-bar">'
+    + '<button class="action-btn" onclick="speakAllText()">🔊 Hela texten</button>'
+    + '<button class="action-btn" onclick="stopSpeaking()">⏹ Stopp</button></div>';
+  currentLesson.sections.forEach(function(sec) {
+    var fullSv = sec.sentences.map(function(s){return s.sv;}).join(' ');
+    html += '<div class="text-section">'
+      + '<div class="text-section-header"><span class="section-label">'+sec.label+'</span>'
+      + '<button class="speak-btn" onclick="speak(\''+safe(fullSv)+'\',\'sv-SE\')">🔊 Vorlesen</button></div>'
+      + '<div class="text-body"><p>'+sec.sentences.map(function(s){return s.sv;}).join(' ')+'</p></div></div>';
+  });
+  document.getElementById('tab-text').innerHTML = html;
+}
+
+function speakAllText() {
+  speak(currentLesson.sections.map(function(s){return s.sentences.map(function(x){return x.sv;}).join(' ');}).join(' '),'sv-SE');
+}
+
+// ── Dekodierung ──
+function buildDekodierungTab() {
+  var html = '';
+  currentLesson.sections.forEach(function(sec) {
+    html += '<div class="decode-section"><div class="decode-section-header"><span class="section-label">'+sec.label+'</span></div><div class="decode-pairs">';
+    sec.sentences.forEach(function(s) {
+      html += '<div class="decode-pair"><div class="decode-pair-inner">'
+        + '<button class="decode-speak" onclick="speak(\''+safe(s.sv)+'\',\'sv-SE\')">🔊</button>'
+        + '<div class="decode-texts"><div class="decode-sv">'+s.sv+'</div>'
+        + '<div class="decode-de">'+s.decode+'</div></div></div></div>';
+    });
+    html += '</div></div>';
+  });
+  document.getElementById('dekodierung-content').innerHTML = html;
+}
+
+// ── Glossar ──
+function buildGlossar(list) {
+  var container = document.getElementById('glossar-list');
+  container.innerHTML = '';
+  var sorted = list.slice().sort(function(a,b){return a.sv.localeCompare(b.sv,'sv');});
+  sorted.forEach(function(v, i) {
+    var item = document.createElement('div');
+    item.className = 'glossary-item';
+    item.innerHTML = '<div class="glossary-header" id="gh-'+i+'">'
+      +'<div class="glossary-main"><span class="gloss-sv">'+v.sv+'</span><span class="gloss-de">'+v.de+'</span><span class="gloss-type">'+v.type+'</span></div>'
+      +'<span style="color:var(--ink3)" id="arr-'+i+'">▸</span></div>'
+      +'<div class="glossary-details" id="gd-'+i+'">'
+      +'<div class="detail-row"><span class="detail-label">📖 Definition</span><span class="detail-value">'+v.def+'</span></div>'
+      +'<div class="detail-row"><span class="detail-label">✏️ Exempel</span><span class="detail-value detail-example">'+v.ex+'</span></div>'
+      +'<div class="detail-row"><span class="detail-label">🇩🇪 Deutsch</span><span class="detail-value">'+v.de+'</span></div>'
+      +'<div class="glossary-speak-row">'
+      +'<button class="speak-btn gspeak" data-text="'+safe(v.sv)+'" data-lang="sv-SE">🔊 Svenska</button>'
+      +'<button class="speak-btn gspeak" data-text="'+safe(v.de)+'" data-lang="de-DE">🔊 Deutsch</button>'
+      +'</div></div>';
+    container.appendChild(item);
+    document.getElementById('gh-'+i).addEventListener('click', function() {
+      var d=document.getElementById('gd-'+i), a=document.getElementById('arr-'+i);
+      d.classList.toggle('open'); a.textContent=d.classList.contains('open')?'▾':'▸';
+    });
+  });
+  container.querySelectorAll('.gspeak').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      speak(this.getAttribute('data-text'), this.getAttribute('data-lang'));
+    });
+  });
+}
+
+function filterGlossar() {
+  var q=(document.getElementById('glossar-search').value||'').toLowerCase();
+  buildGlossar(currentLesson.vocab.filter(function(v){
+    return v.sv.toLowerCase().indexOf(q)!==-1||v.de.toLowerCase().indexOf(q)!==-1;
+  }));
+}
+
+// ── Vokabel-Tabellen ──
+function typeBadge(t) {
+  var map={noun:'type-noun',verb:'type-verb',adj:'type-adj',adv:'type-adv',phrase:'type-phrase'};
+  var labels={noun:'Substantiv',verb:'Verb',adj:'Adjektiv',adv:'Adverb',phrase:'Ausdruck'};
+  return '<span class="vocab-type-badge '+(map[t]||'type-phrase')+'">'+(labels[t]||t)+'</span>';
+}
+
+function buildVocabTable(btn, sortKey, bodyId) {
+  btn.closest('.sort-bar').querySelectorAll('.sort-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  var sorted = currentLesson.vocab.slice().sort(function(a,b){return (a[sortKey]||'').localeCompare(b[sortKey]||'','sv');});
+  document.getElementById(bodyId).innerHTML = sorted.map(function(v){
+    return '<tr><td><span class="vocab-sv">'+v.sv+'</span></td><td><span class="vocab-de">'+v.de+'</span></td><td>'+typeBadge(v.type)+'</td>'
+      +'<td><button class="speak-mini" onclick="speak(\''+safe(v.sv)+'\',\'sv-SE\')">🔊</button></td></tr>';
+  }).join('');
+}
+
+function buildVocabTableDe(btn, sortKey, bodyId) {
+  btn.closest('.sort-bar').querySelectorAll('.sort-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  var sorted = currentLesson.vocab.slice().sort(function(a,b){return (a[sortKey]||'').localeCompare(b[sortKey]||'','de');});
+  document.getElementById(bodyId).innerHTML = sorted.map(function(v){
+    return '<tr><td><span class="vocab-de">'+v.de+'</span></td><td><span class="vocab-sv">'+v.sv+'</span></td><td>'+typeBadge(v.type)+'</td>'
+      +'<td><button class="speak-mini" onclick="speak(\''+safe(v.sv)+'\',\'sv-SE\')">🔊</button></td></tr>';
+  }).join('');
+}
+
+// ── Verb-Tabellen ──
+function verbRow(v, isStrong) {
+  return '<tr '+(isStrong?'class="strong-row"':'')+'>'
+    +'<td><span class="verb-inf">'+v.inf+'</span>'+(isStrong?'<span class="strong-badge">⭐</span>':'')+'</td>'
+    +'<td><span class="verb-past">'+v.past+'</span></td>'
+    +'<td><span class="verb-sup">'+v.sup+'</span></td>'
+    +'<td style="color:var(--ink2)">'+v.de+'</td>'
+    +'<td style="font-size:0.78rem;color:var(--ink3);font-style:italic">'+v.ex+'</td>'
+    +'<td><button class="speak-mini" onclick="speak(\''+safe(v.inf)+' … '+safe(v.past)+' … '+safe(v.sup)+'\',\'sv-SE\')">🔊</button></td>'
+    +'</tr>';
+}
+
+function buildVerbTable(btn, filter, bodyId) {
+  btn.closest('.sort-bar').querySelectorAll('.sort-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  var rows='';
+  if(filter==='strong'||filter==='all') currentLesson.verbsStrong.forEach(function(v){rows+=verbRow(v,true);});
+  if(filter==='weak'||filter==='all') currentLesson.verbsWeak.forEach(function(v){rows+=verbRow(v,false);});
+  document.getElementById(bodyId).innerHTML=rows;
+}
+
+function buildStrongVerbsTab() {
+  document.getElementById('verb-body-strong').innerHTML=currentLesson.verbsStrong.map(function(v){return verbRow(v,true);}).join('');
+}
+
+function speakAllStrongVerbs() {
+  stopSpeaking();
+  var delay=200;
+  currentLesson.verbsStrong.forEach(function(v){
+    setTimeout(function(){
+      var u=new SpeechSynthesisUtterance(v.inf+' … '+v.past+' … '+v.sup);
+      u.lang='sv-SE';u.rate=0.8;window.speechSynthesis.speak(u);
+    },delay);
+    delay+=2800;
+  });
+}
+
+// ── Tabs ──
+document.addEventListener('DOMContentLoaded', function() {
+  // Prüfen ob Client-ID eingetragen
+  if (CONFIG.CLIENT_ID === 'HIER_DEINE_CLIENT_ID_EINTRAGEN') {
+    document.getElementById('setup-hint').style.display = 'block';
+  } else {
+    document.getElementById('setup-hint').style.display = 'none';
+  }
+
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(function(btn) {
+    btn.addEventListener('click', function() { activateTab(this.getAttribute('data-tab')); });
+  });
+
+  showScreen('login-screen');
+});
+</script>
+</body>
+</html>
