@@ -237,6 +237,75 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--ink);min-
 .file-input-label:hover{border-color:var(--blue);color:var(--blue);}
 .file-input-label input{display:none;}
 
+/* ── GRAMMATIK TABELLEN ── */
+.gram-table{width:100%;border-collapse:collapse;background:var(--white);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:1rem;}
+.gram-table th{background:var(--ink);color:white;padding:9px 10px;text-align:left;font-size:0.78rem;font-weight:600;letter-spacing:0.03em;white-space:nowrap;}
+.gram-table td{padding:9px 10px;border-bottom:1px solid var(--border);font-size:0.83rem;vertical-align:top;line-height:1.5;}
+.gram-table tr:last-child td{border-bottom:none;}
+.gram-table tr:nth-child(even) td{background:var(--bg);}
+.gram-table tr:hover td{background:var(--blue-lt);}
+.gram-table .main-word{font-weight:700;color:var(--ink);}
+.gram-table .sub-form{color:var(--ink2);}
+.gram-table .stark{color:var(--gold);font-size:0.72rem;font-weight:700;}
+.gram-table .example{color:var(--ink3);font-size:0.78rem;font-style:italic;}
+.gram-table .en-ett{
+  display:inline-block;padding:1px 6px;border-radius:4px;
+  font-weight:800;font-size:0.72rem;
+}
+.gram-table .en-ett.en{background:#EAF5EC;color:#2A6030;}
+.gram-table .en-ett.ett{background:#EAF0FB;color:#1A4F7A;}
+
+/* AUDIO BUTTONS */
+.audio-btn{
+  display:inline-flex;align-items:center;gap:2px;
+  padding:2px 6px;border-radius:6px;border:none;
+  background:transparent;cursor:pointer;font-size:0.75rem;
+  color:var(--ink3);transition:all 0.15s;vertical-align:middle;
+  margin-left:3px;
+}
+.audio-btn:hover{background:var(--gold-bg);color:var(--gold);}
+.audio-btn.sv{color:var(--blue);}
+.audio-btn.sv:hover{background:var(--blue-lt);}
+.audio-btn.de{color:var(--green);}
+.audio-btn.de:hover{background:var(--green-lt);}
+.ext-link{
+  display:inline-flex;align-items:center;
+  padding:2px 6px;border-radius:6px;
+  font-size:0.72rem;color:var(--ink3);text-decoration:none;
+  transition:all 0.15s;margin-left:2px;
+}
+.ext-link:hover{background:var(--gold-bg);color:var(--gold);}
+
+/* TEXT ABSCHNITTE */
+.abschnitt-block{
+  background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:1.25rem;margin-bottom:1rem;box-shadow:var(--shadow);
+}
+.abschnitt-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:0.875rem;padding-bottom:0.5rem;border-bottom:1.5px solid var(--border);
+  flex-wrap:wrap;gap:0.5rem;
+}
+.abschnitt-name{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);}
+.abschnitt-btns{display:flex;gap:6px;}
+.abschnitt-satz{font-size:0.92rem;color:var(--ink);line-height:1.7;margin-bottom:0.4rem;}
+.abschnitt-satz:last-child{margin-bottom:0;}
+.text-top-bar{display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;}
+.play-all-btn{
+  padding:8px 18px;border-radius:8px;border:none;background:var(--blue);
+  color:white;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;
+  cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:6px;
+}
+.play-all-btn:hover{background:#1A3F6A;}
+
+/* WORT TABLE MIT FLAGS */
+.wort-table-v2{width:100%;border-collapse:collapse;background:var(--white);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+.wort-table-v2 th{background:var(--blue);color:white;padding:9px 12px;text-align:left;font-size:0.82rem;font-weight:600;}
+.wort-table-v2 td{padding:8px 12px;border-bottom:1px solid var(--border);font-size:0.88rem;vertical-align:middle;}
+.wort-table-v2 tr:nth-child(even) td{background:var(--bg);}
+.wort-table-v2 tr:hover td{background:var(--blue-lt);}
+.word-cell{display:flex;align-items:center;gap:2px;flex-wrap:wrap;}
+
 /* RESPONSIVE */
 @media(max-width:600px){
   .start-title{font-size:2rem;}
@@ -403,6 +472,8 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--ink);min-
             <button onclick="prevKarte('svde')">← Zurück</button>
             <span class="karte-counter" id="svde-counter">1 / 1</span>
             <button onclick="nextKarte('svde')">Weiter →</button>
+            <button class="audio-btn sv" onclick="speakSv(document.getElementById('svde-front').textContent)" title="Schwedisch vorlesen">🔊🇸🇪</button>
+            <button class="audio-btn de" onclick="speakDe(document.getElementById('svde-back').textContent)" title="Deutsch vorlesen">🔊🇩🇪</button>
           </div>
         </div>
       </div>
@@ -430,6 +501,8 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--ink);min-
             <button onclick="prevKarte('desv')">← Zurück</button>
             <span class="karte-counter" id="desv-counter">1 / 1</span>
             <button onclick="nextKarte('desv')">Weiter →</button>
+            <button class="audio-btn de" onclick="speakDe(document.getElementById('desv-front').textContent)" title="Deutsch vorlesen">🔊🇩🇪</button>
+            <button class="audio-btn sv" onclick="speakSv(document.getElementById('desv-back').textContent)" title="Schwedisch vorlesen">🔊🇸🇪</button>
           </div>
         </div>
       </div>
@@ -437,13 +510,40 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--ink);min-
     </div>
   </div>
 
-  <!-- ─── BEREICH: GRAMMATIK ─── (Platzhalter Session 2) -->
+  <!-- ─── BEREICH: GRAMMATIK ─── -->
   <div id="bereich-grammatik" class="bereich-content" style="display:none;">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('grammatik','verb',this)">📝 Alla verb</button>
+      <button class="tab-btn" onclick="switchTab('grammatik','oregelb',this)">⭐ Oregelbundna</button>
+      <button class="tab-btn" onclick="switchTab('grammatik','subst',this)">🔵 Substantive</button>
+      <button class="tab-btn" onclick="switchTab('grammatik','adj',this)">🟡 Adjektive</button>
+    </div>
     <div class="content">
-      <div class="empty">
-        <h3>📝 Grammatik</h3>
-        <p>Verben · Substantive · Adjektive<br>Kommt in Session 2!</p>
+
+      <!-- ALLA VERB -->
+      <div class="tab-panel active" id="tab-grammatik-verb">
+        <div class="sec-label">Alla verb — Alle Verben mit 7 Formen</div>
+        <div id="verb-container"></div>
       </div>
+
+      <!-- OREGELBUNDNA -->
+      <div class="tab-panel" id="tab-grammatik-oregelb">
+        <div class="sec-label">Oregelbundna verb — Unregelmäßige Verben</div>
+        <div id="oregelb-container"></div>
+      </div>
+
+      <!-- SUBSTANTIVE -->
+      <div class="tab-panel" id="tab-grammatik-subst">
+        <div class="sec-label">Substantive — en/ett + 4 Formen</div>
+        <div id="subst-container"></div>
+      </div>
+
+      <!-- ADJEKTIVE -->
+      <div class="tab-panel" id="tab-grammatik-adj">
+        <div class="sec-label">Adjektive — Positiv + Steigerung</div>
+        <div id="adj-container"></div>
+      </div>
+
     </div>
   </div>
 
@@ -506,15 +606,15 @@ function show(id) {
     target.style.display = (id === 'screen-app') ? 'flex' : 'flex';
     if (id === 'screen-app') target.classList.add('active');
   }
-}
+};
 
-function goHome() { show('screen-start'); }
-function goThema() { show('screen-thema'); }
+window.goHome = function() { show('screen-start'); };
+window.goThema = function() { show('screen-thema'); }
 
 // ══════════════════════════════════════════════════════
 // DATENQUELLE WÄHLEN
 // ══════════════════════════════════════════════════════
-function chooseSource(source) {
+window.chooseSource = function(source) {
   STATE.source = source;
   if (source === 'local') {
     // Direkt Datei-Dialog öffnen — kein Zwischenschritt
@@ -524,14 +624,14 @@ function chooseSource(source) {
     show('screen-thema');
     document.getElementById('btn-change-thema').style.display = 'inline-block';
   }
-}
+};
 
-function closeModal() { /* nicht mehr verwendet */ }
+window.closeModal = function() { /* nicht mehr verwendet */ }
 
 // ══════════════════════════════════════════════════════
 // LOKALE DATEI
 // ══════════════════════════════════════════════════════
-function handleFileSelect(event) {
+window.handleFileSelect = function(event) {
   const file = event.target.files[0];
   if (!file) return;
   const thema = file.name.replace('.xlsx','').replace('.xls','');
@@ -558,19 +658,19 @@ function handleFileSelect(event) {
 // ══════════════════════════════════════════════════════
 // GOOGLE DRIVE
 // ══════════════════════════════════════════════════════
-function selectThema(thema) {
+window.selectThema = function(thema) {
   STATE.thema = thema;
   document.querySelectorAll('.thema-card').forEach(c => c.classList.remove('active'));
   event.currentTarget.classList.add('active');
   document.getElementById('btn-load').disabled = false;
-}
+};
 
-function addNewThema() {
+window.addNewThema = function() {
   STATE.source = 'local';
   document.getElementById('file-input-hidden').click();
 }
 
-async function loadThema() {
+window.loadThema = async function() {
   if (!STATE.thema) return;
   show('screen-loading');
   document.getElementById('loading-text').textContent = 'Verbinde mit Google…';
@@ -781,6 +881,7 @@ function buildApp() {
   buildGlossar();
   buildSvDe();
   buildDeSv();
+  buildGrammatik();
 }
 
 function buildText() {
@@ -899,19 +1000,19 @@ function updateKarte(mode) {
   document.getElementById(`${mode}-karte`).classList.remove('flipped');
   STATE.wortFlipped[mode] = false;
   document.getElementById(`${mode}-counter`).textContent = `${idx+1} / ${data.length}`;
-}
+};
 
-function flipKarte(mode) {
+window.flipKarte = function(mode) {
   document.getElementById(`${mode}-karte`).classList.toggle('flipped');
-}
+};
 
-function nextKarte(mode) {
+window.nextKarte = function(mode) {
   const data = STATE.wortData[mode];
   STATE.wortIdx[mode] = (STATE.wortIdx[mode] + 1) % data.length;
   updateKarte(mode);
-}
+};
 
-function prevKarte(mode) {
+window.prevKarte = function(mode) {
   const data = STATE.wortData[mode];
   STATE.wortIdx[mode] = (STATE.wortIdx[mode] - 1 + data.length) % data.length;
   updateKarte(mode);
@@ -920,7 +1021,7 @@ function prevKarte(mode) {
 // ══════════════════════════════════════════════════════
 // SUCHE + FILTER
 // ══════════════════════════════════════════════════════
-function filterVokabeln() {
+window.filterVokabeln = function() {
   const q = document.getElementById('vok-search').value.toLowerCase();
   document.querySelectorAll('#vok-grid-view .vok-card').forEach(card => {
     const match = card.dataset.sv.includes(q) || card.dataset.de.includes(q);
@@ -930,9 +1031,9 @@ function filterVokabeln() {
     const text = tr.textContent.toLowerCase();
     tr.style.display = text.includes(q) ? '' : 'none';
   });
-}
+};
 
-function filterWort(mode) {
+window.filterWort = function(mode) {
   const q = document.getElementById(`${mode}-search`).value.toLowerCase();
   document.querySelectorAll(`#${mode}-tbody tr`).forEach(tr => {
     tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
@@ -942,7 +1043,7 @@ function filterWort(mode) {
 // ══════════════════════════════════════════════════════
 // VIEW TOGGLE
 // ══════════════════════════════════════════════════════
-function setVokView(view, btn) {
+window.setVokView = function(view, btn) {
   STATE.vokView = view;
   document.querySelectorAll('.view-toggle .vtbtn').forEach(b => {
     if (b.closest('#tab-lernen-glossar')) b.classList.remove('active');
@@ -950,9 +1051,9 @@ function setVokView(view, btn) {
   btn.classList.add('active');
   document.getElementById('vok-grid-view').style.display = view==='grid' ? 'grid' : 'none';
   document.getElementById('vok-table-view').style.display = view==='table' ? 'block' : 'none';
-}
+};
 
-function setWortView(mode, view, btn) {
+window.setWortView = function(mode, view, btn) {
   const parent = btn.closest('.tab-panel') || btn.closest('.view-toggle').parentElement;
   parent.querySelectorAll('.vtbtn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -963,14 +1064,14 @@ function setWortView(mode, view, btn) {
 // ══════════════════════════════════════════════════════
 // BEREICH + TAB NAVIGATION
 // ══════════════════════════════════════════════════════
-function switchBereich(bereich, btn) {
+window.switchBereich = function(bereich, btn) {
   document.querySelectorAll('.bereich-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.querySelectorAll('.bereich-content').forEach(c => c.style.display = 'none');
   document.getElementById('bereich-' + bereich).style.display = 'block';
-}
+};
 
-function switchTab(bereich, tab, btn) {
+window.switchTab = function(bereich, tab, btn) {
   const bereichEl = document.getElementById('bereich-' + bereich);
   bereichEl.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   bereichEl.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -989,6 +1090,417 @@ function shuffle(arr) {
     [a[i],a[j]] = [a[j],a[i]];
   }
   return a;
+}
+
+// ══════════════════════════════════════════════════════
+// AUDIO — Web Speech API
+// ══════════════════════════════════════════════════════
+let currentUtterance = null;
+
+function speak(text, lang) {
+  if (!text) return;
+  if (currentUtterance) { window.speechSynthesis.cancel(); }
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang || 'sv-SE';
+  u.rate = 0.85;
+  currentUtterance = u;
+  window.speechSynthesis.speak(u);
+};
+
+window.speakSv = function(text) { speak(text, 'sv-SE'); };
+window.speakDe = function(text) { speak(text, 'de-DE'); }
+
+// Sichere Alternative: liest Text aus data-Attribut statt onclick-String
+window.speakData = function(btn, lang) {
+  const text = btn.getAttribute('data-text') || '';
+  speak(text, lang === 'sv' ? 'sv-SE' : 'de-DE');
+}
+
+// Escape für onclick-Strings
+function esc(text) {
+  return (text||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,' ').replace(/\r/g,'');
+};
+
+window.speakSequence = function(texts, lang, delay) {
+  // Spricht mehrere Texte nacheinander mit Pause
+  if (!texts || !texts.length) return;
+  window.speechSynthesis.cancel();
+  let i = 0;
+  function next() {
+    if (i >= texts.length) return;
+    const u = new SpeechSynthesisUtterance(texts[i]);
+    u.lang = lang || 'sv-SE';
+    u.rate = 0.85;
+    u.onend = () => { i++; setTimeout(next, delay || 800); };
+    window.speechSynthesis.speak(u);
+  }
+  next();
+};
+
+window.speakAll = function(texts, lang) {
+  // Spricht alle Texte als einen langen Text
+  const combined = texts.join('. ');
+  speak(combined, lang);
+}
+
+// ══════════════════════════════════════════════════════
+// TEXT — Abschnitte zusammengefasst
+// ══════════════════════════════════════════════════════
+function buildText() {
+  const rows = STATE.data.texte;
+  const svKey = Object.keys(rows[0]||{}).find(k => k.includes('Schwedisch')) || 'Schwedisch (Original)';
+  const secKey = Object.keys(rows[0]||{}).find(k => k.toLowerCase().includes('abschn')) || 'Abschnitt';
+
+  // Gruppiere nach Abschnitt
+  const abschnitte = {};
+  const order = [];
+  rows.forEach(r => {
+    const sec = r[secKey] || 'Ohne Abschnitt';
+    const sv = r[svKey] || '';
+    if (!sv) return;
+    if (!abschnitte[sec]) { abschnitte[sec] = []; order.push(sec); }
+    abschnitte[sec].push(sv);
+  });
+
+  const container = document.getElementById('tbody-text').parentElement.parentElement;
+  
+  // Ganzer Text Button
+  const allSents = rows.map(r => r[svKey]).filter(Boolean);
+  let html = `<div class="text-top-bar">
+    <button class="play-all-btn" onclick="speakAll(${JSON.stringify(allSents)}, 'sv-SE')">
+      🔊 Ganzen Text vorlesen
+    </button>
+    <span style="font-size:0.82rem;color:var(--ink3);">${allSents.length} Sätze · ${order.length} Abschnitte</span>
+  </div>`;
+
+  order.forEach(sec => {
+    const sätze = abschnitte[sec];
+    html += `<div class="abschnitt-block">
+      <div class="abschnitt-header">
+        <span class="abschnitt-name">${sec}</span>
+        <div class="abschnitt-btns">
+          <button class="audio-btn sv" onclick="speakSequence(${JSON.stringify(sätze)}, 'sv-SE', 600)" title="Abschnitt vorlesen">🔊 Abschnitt</button>
+        </div>
+      </div>
+      ${sätze.map(s => `<div class="abschnitt-satz">${s}</div>`).join('')}
+    </div>`;
+  });
+
+  container.outerHTML = `<div id="tab-lernen-text-content">${html}</div>`;
+  // Ersetze den alten Inhalt
+  document.getElementById('tab-lernen-text').innerHTML = `<div id="tab-lernen-text-content">${html}</div>`;
+}
+
+function buildDekodierung() {
+  const tbody = document.getElementById('tbody-dekod');
+  const rows = STATE.data.texte;
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="3">Keine Daten.</td></tr>'; return; }
+
+  const svKey = Object.keys(rows[0]).find(k => k.includes('Schwedisch')) || 'Schwedisch (Original)';
+  const deKey = Object.keys(rows[0]).find(k => k.includes('Dekodieru') || k.includes('Deutsch')) || 'Dekodierung (wortgetreu Deutsch)';
+
+  tbody.innerHTML = rows.map((r, i) => {
+    const sv = r[svKey] || ''; const de = r[deKey] || '';
+    if (!sv) return '';
+    return `<tr>
+      <td style="color:var(--ink3);font-size:0.78rem;">${i+1}</td>
+      <td><span class="sv">${sv}</span> <button class="audio-btn sv" data-text="${sv}" onclick="speakData(this,'sv')">🔊🇸🇪</button></td>
+      <td><span class="de">${de}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function buildGlossar() {
+  const rows = [...STATE.data.vokabeln].sort((a,b) => {
+    const svKey = Object.keys(a).find(k => k.toLowerCase() === 'schwedisch') || 'Schwedisch';
+    return (a[svKey]||'').localeCompare(b[svKey]||'', 'sv');
+  });
+  if (!rows.length) {
+    document.getElementById('vok-grid-view').innerHTML = '<div class="empty"><h3>Keine Vokabeln</h3></div>';
+    return;
+  }
+
+  const svKey = Object.keys(rows[0]).find(k => k.toLowerCase() === 'schwedisch') || 'Schwedisch';
+  const deKey = Object.keys(rows[0]).find(k => k.toLowerCase() === 'deutsch') || 'Deutsch';
+  const typKey = Object.keys(rows[0]).find(k => k.toLowerCase() === 'typ') || 'Typ';
+  const defKey = Object.keys(rows[0]).find(k => k.toLowerCase().includes('defin')) || 'Definition (Schwedisch)';
+  const exKey = Object.keys(rows[0]).find(k => k.toLowerCase().includes('beisp')) || 'Beispielsatz';
+
+  document.getElementById('vok-grid-view').innerHTML = rows.map(r => {
+    const sv = r[svKey]||''; const de = r[deKey]||'';
+    const svEnc = sv.replace(/'/g,"\'");
+    return `<div class="vok-card" data-sv="${sv.toLowerCase()}" data-de="${de.toLowerCase()}">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span class="vok-sv">${sv}</span>
+        <button class="audio-btn sv" data-text="${svEnc}" onclick="speakData(this,\'sv\')">🔊🇸🇪</button>
+        <a class="ext-link" href="https://www.svenska.se/?q=${encodeURIComponent(sv)}" target="_blank" title="In svenska.se nachschlagen">📖</a>
+      </div>
+      <div class="vok-de">${de}</div>
+      <span class="vok-typ">${r[typKey]||''}</span>
+      <div class="vok-def">${r[defKey]||''}</div>
+      ${r[exKey] ? `<div class="vok-ex">${r[exKey]}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('vok-tbody').innerHTML = rows.map(r => {
+    const sv = r[svKey]||''; const de = r[deKey]||'';
+    const svEnc = sv.replace(/'/g,"\'");
+    return `<tr>
+      <td><strong>${sv}</strong> <button class="audio-btn sv" data-text="${svEnc}" onclick="speakData(this,\'sv\')">🔊🇸🇪</button>
+          <a class="ext-link" href="https://www.svenska.se/?q=${encodeURIComponent(sv)}" target="_blank">📖</a></td>
+      <td>${de}</td>
+      <td><span class="vok-typ">${r[typKey]||''}</span></td>
+      <td style="font-size:0.8rem;color:var(--ink3);">${r[exKey]||''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function buildSvDe() {
+  const rows = [...STATE.data.vokabeln].sort((a,b) => {
+    const k = Object.keys(a).find(k => k.toLowerCase() === 'schwedisch') || 'Schwedisch';
+    return (a[k]||'').localeCompare(b[k]||'', 'sv');
+  });
+  const svKey = Object.keys(rows[0]||{}).find(k => k.toLowerCase() === 'schwedisch') || 'Schwedisch';
+  const deKey = Object.keys(rows[0]||{}).find(k => k.toLowerCase() === 'deutsch') || 'Deutsch';
+
+  STATE.wortData.svde = rows.map(r => ({ front: r[svKey]||'', back: r[deKey]||'', frontLang:'sv-SE', backLang:'de-DE' }));
+
+  document.getElementById('svde-tbody').innerHTML = rows.map(r => {
+    const sv = r[svKey]||''; const de = r[deKey]||'';
+    return `<tr>
+      <td><div class="word-cell"><strong>${sv}</strong><button class="audio-btn sv" data-text="${sv}" onclick="speakData(this,'sv')">🔊🇸🇪</button></div></td>
+      <td><div class="word-cell">${de}<button class="audio-btn de" data-text="${de}" onclick="speakData(this,'de')">🔊🇩🇪</button></div></td>
+    </tr>`;
+  }).join('');
+  updateKarte('svde');
+}
+
+function buildDeSv() {
+  const rows = [...STATE.data.vokabeln].sort((a,b) => {
+    const k = Object.keys(a).find(k => k.toLowerCase() === 'deutsch') || 'Deutsch';
+    return (a[k]||'').localeCompare(b[k]||'', 'de');
+  });
+  const svKey = Object.keys(rows[0]||{}).find(k => k.toLowerCase() === 'schwedisch') || 'Schwedisch';
+  const deKey = Object.keys(rows[0]||{}).find(k => k.toLowerCase() === 'deutsch') || 'Deutsch';
+
+  STATE.wortData.desv = shuffle(rows.map(r => ({ front: r[deKey]||'', back: r[svKey]||'', frontLang:'de-DE', backLang:'sv-SE' })));
+
+  document.getElementById('desv-tbody').innerHTML = rows.map(r => {
+    const sv = r[svKey]||''; const de = r[deKey]||'';
+    return `<tr>
+      <td><div class="word-cell"><strong>${de}</strong><button class="audio-btn de" data-text="${de}" onclick="speakData(this,'de')">🔊🇩🇪</button></div></td>
+      <td><div class="word-cell">${sv}<button class="audio-btn sv" data-text="${sv}" onclick="speakData(this,'sv')">🔊🇸🇪</button></div></td>
+    </tr>`;
+  }).join('');
+  updateKarte('desv');
+}
+
+// ══════════════════════════════════════════════════════
+// GRAMMATIK
+// ══════════════════════════════════════════════════════
+function buildGrammatik() {
+  buildVerben();
+  buildSubstantive();
+  buildAdjektive();
+}
+
+function getVerbKey(row, candidates) {
+  const keys = Object.keys(row);
+  for (const c of candidates) {
+    const found = keys.find(k => k.includes(c));
+    if (found) return found;
+  }
+  return null;
+}
+
+function buildVerben() {
+  const allRows = [...STATE.data.verben].sort((a,b) => {
+    const k = getVerbKey(a, ['Grundform','Infinitiv']) || Object.keys(a)[1];
+    const k2 = getVerbKey(b, ['Grundform','Infinitiv']) || Object.keys(b)[1];
+    return (a[k]||'').localeCompare(b[k]||'', 'sv');
+  });
+
+  if (!allRows.length) {
+    document.getElementById('verb-container').innerHTML = '<div class="empty"><h3>Keine Verben geladen</h3></div>';
+    document.getElementById('oregelb-container').innerHTML = '<div class="empty"><h3>Keine Verben geladen</h3></div>';
+    return;
+  }
+
+  const keys = Object.keys(allRows[0]);
+  const deKey = keys.find(k => k === 'Deutsch') || keys[0];
+  const grundKey = getVerbKey(allRows[0], ['Grundform','Infinitiv']) || keys[1];
+  const präsKey = keys.find(k => k === 'Präsens') || keys[2];
+  const prätKey = keys.find(k => k === 'Präteritum') || keys[3];
+  const supKey = keys.find(k => k === 'Supinum') || keys[4];
+  const impKey = keys.find(k => k === 'Imperativ') || keys[5];
+  const exKey = getVerbKey(allRows[0], ['Beispiel']) || keys[6];
+  const starkKey = getVerbKey(allRows[0], ['Stark']) || keys[7];
+
+  function buildVerbTable(rows) {
+    return `<div style="overflow-x:auto;">
+    <table class="gram-table">
+      <thead><tr>
+        <th>Deutsch</th><th>Grundform</th><th>Präsens</th>
+        <th>Präteritum</th><th>Supinum</th><th>Imperativ</th>
+        <th>Beispielsätze</th><th>🔊</th>
+      </tr></thead>
+      <tbody>
+      ${rows.map(r => {
+        const grund = r[grundKey]||''; const präs = r[präsKey]||'';
+        const prät = r[prätKey]||''; const sup = r[supKey]||'';
+        const imp = r[impKey]||''; const ex = r[exKey]||'';
+        const stark = (r[starkKey]||'').includes('JA');
+        const grundEnc = grund.replace(/'/g,"\'");
+        const präsEnc = präs.replace(/'/g,"\'");
+        const prätEnc = prät.replace(/'/g,"\'");
+        const supEnc = sup.replace(/'/g,"\'");
+        const formsArr = JSON.stringify([präs, prät, sup].filter(Boolean));
+        const exArr = JSON.stringify(ex.split('/').map(s=>s.trim()).filter(Boolean));
+        return `<tr>
+          <td class="sub-form">${r[deKey]||''}${stark ? ' <span class="stark">★</span>':''}</td>
+          <td class="main-word">${grund} <button class="audio-btn sv" data-text="${grund.replace(/"/g,'&quot;')}" onclick="speakData(this,'sv')">🔊</button></td>
+          <td>${präs}</td>
+          <td>${prät}</td>
+          <td>${sup}</td>
+          <td>${imp !== '—' ? imp : '<span style="color:var(--ink3)">—</span>'}</td>
+          <td class="example">${ex.replace(/\//g,'<br>')}</td>
+          <td>
+            <button class="audio-btn sv" onclick="speakSequence(${formsArr},'sv-SE',700)" title="Formen vorlesen">🔊¹</button>
+            <button class="audio-btn sv" onclick="speakSequence(${exArr},'sv-SE',1000)" title="Beispielsätze">🔊²</button>
+          </td>
+        </tr>`;
+      }).join('')}
+      </tbody>
+    </table></div>`;
+  }
+
+  document.getElementById('verb-container').innerHTML = buildVerbTable(allRows);
+  const oregelb = allRows.filter(r => (r[starkKey]||'').includes('JA'));
+  document.getElementById('oregelb-container').innerHTML = buildVerbTable(oregelb);
+}
+
+function buildSubstantive() {
+  const rows = [...STATE.data.substantive].sort((a,b) => {
+    const k = Object.keys(a).find(k => k.includes('Grundform')) || Object.keys(a)[2];
+    return (a[k]||'').localeCompare(b[k]||'', 'sv');
+  });
+
+  if (!rows.length) {
+    document.getElementById('subst-container').innerHTML = '<div class="empty"><h3>Keine Substantive geladen</h3></div>';
+    return;
+  }
+
+  const keys = Object.keys(rows[0]);
+  const deKey = keys.find(k => k === 'Deutsch') || keys[0];
+  const enettKey = keys.find(k => k.includes('en/ett') || k === 'en/ett') || keys[1];
+  const grundKey = keys.find(k => k.includes('Grundform')) || keys[2];
+  const bestKey = keys.find(k => k.includes('Bestimmt')) || keys[3];
+  const plObKey = keys.find(k => k.includes('obestämd') || k.includes('Plural')) || keys[4];
+  const plBeKey = keys.find(k => k.includes('bestämd') && k.includes('Plural')) || keys[5];
+  const exKey = keys.find(k => k.includes('Beispiel')) || keys[6];
+
+  document.getElementById('subst-container').innerHTML = `<div style="overflow-x:auto;">
+  <table class="gram-table">
+    <thead><tr>
+      <th>Deutsch</th><th>en/ett</th><th>Grundform</th>
+      <th>Bestimmt Sg.</th><th>Plural obest.</th><th>Plural best.</th>
+      <th>Beispielsätze</th><th>🔊</th>
+    </tr></thead>
+    <tbody>
+    ${rows.map(r => {
+      const enett = (r[enettKey]||'').trim();
+      const grund = r[grundKey]||''; const best = r[bestKey]||'';
+      const plOb = r[plObKey]||''; const plBe = r[plBeKey]||'';
+      const ex = r[exKey]||'';
+      const formsArr = JSON.stringify([grund, best, plOb, plBe].filter(Boolean));
+      const exArr = JSON.stringify(ex.split('/').map(s=>s.trim()).filter(Boolean));
+      return `<tr>
+        <td class="sub-form">${r[deKey]||''}</td>
+        <td><span class="en-ett ${enett}">${enett}</span></td>
+        <td class="main-word">${grund}</td>
+        <td>${best}</td>
+        <td>${plOb}</td>
+        <td>${plBe}</td>
+        <td class="example">${ex.replace(/\//g,'<br>')}</td>
+        <td>
+          <button class="audio-btn sv" onclick="speakSequence(${formsArr},'sv-SE',700)" title="4 Formen vorlesen">🔊¹</button>
+          <button class="audio-btn sv" onclick="speakSequence(${exArr},'sv-SE',1000)" title="Beispielsätze">🔊²</button>
+        </td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+function buildAdjektive() {
+  const rows = [...STATE.data.adjektive].sort((a,b) => {
+    const k = Object.keys(a).find(k => k.includes('Positiv') && k.includes('en')) || Object.keys(a)[1];
+    return (a[k]||'').localeCompare(b[k]||'', 'sv');
+  });
+
+  if (!rows.length) {
+    document.getElementById('adj-container').innerHTML = '<div class="empty"><h3>Keine Adjektive geladen</h3></div>';
+    return;
+  }
+
+  const keys = Object.keys(rows[0]);
+  const deKey = keys.find(k => k.includes('Deutsch')) || keys[0];
+  const posEnKey = keys.find(k => k.includes('Positiv') && k.includes('en')) || keys[1];
+  const posEttKey = keys.find(k => k.includes('Positiv') && k.includes('ett')) || keys[2];
+  const posPlKey = keys.find(k => k.includes('Positiv') && (k.includes('Pl') || k.includes('Best'))) || keys[3];
+  const kompKey = keys.find(k => k.includes('Komparativ')) || keys[5];
+  const supPrädKey = keys.find(k => k.includes('prädikativ') || k.includes('prädik')) || keys[6];
+  const supAttKey = keys.find(k => k.includes('attributiv') || k.includes('attrib')) || keys[7];
+  const exKey = keys.find(k => k.includes('Beispiel')) || keys[9];
+
+  document.getElementById('adj-container').innerHTML = `<div style="overflow-x:auto;">
+  <table class="gram-table">
+    <thead><tr>
+      <th>Deutsch</th>
+      <th>Pos. en</th><th>Pos. ett</th><th>Pos. Pl./Best.</th><th>🔊¹</th>
+      <th>Komparativ</th><th>Sup. prädik.</th><th>Sup. attrib.</th><th>🔊²</th>
+      <th>Beispielsätze</th><th>🔊³</th>
+    </tr></thead>
+    <tbody>
+    ${rows.map(r => {
+      const posEn = r[posEnKey]||''; const posEtt = r[posEttKey]||'';
+      const posPl = r[posPlKey]||''; const komp = r[kompKey]||'';
+      const supPr = r[supPrädKey]||''; const supAt = r[supAttKey]||'';
+      const ex = r[exKey]||'';
+      const posArr = JSON.stringify([posEn, posEtt, posPl].filter(Boolean));
+      const steigerArr = JSON.stringify([komp, supPr, supAt].filter(k => k && k !== '—'));
+      const exArr = JSON.stringify(ex.split('/').map(s=>s.trim()).filter(Boolean));
+      return `<tr>
+        <td class="sub-form">${r[deKey]||''}</td>
+        <td class="main-word">${posEn}</td>
+        <td>${posEtt}</td>
+        <td>${posPl}</td>
+        <td><button class="audio-btn sv" onclick="speakSequence(${posArr},'sv-SE',700)" title="Positiv vorlesen">🔊</button></td>
+        <td>${komp !== '—' ? komp : '<span style="color:var(--ink3)">—</span>'}</td>
+        <td>${supPr !== '—' ? supPr : '<span style="color:var(--ink3)">—</span>'}</td>
+        <td>${supAt !== '—' ? supAt : '<span style="color:var(--ink3)">—</span>'}</td>
+        <td><button class="audio-btn sv" onclick="speakSequence(${steigerArr},'sv-SE',700)" title="Steigerung vorlesen">🔊</button></td>
+        <td class="example">${ex.replace(/\//g,'<br>')}</td>
+        <td><button class="audio-btn sv" onclick="speakSequence(${exArr},'sv-SE',1000)" title="Beispielsätze">🔊</button></td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// KARTEIKARTEN — mit Audio
+// ══════════════════════════════════════════════════════
+function updateKarte(mode) {
+  const data = STATE.wortData[mode];
+  const idx = STATE.wortIdx[mode];
+  if (!data.length) return;
+  const item = data[idx];
+  document.getElementById(`${mode}-front`).textContent = item.front;
+  document.getElementById(`${mode}-back`).textContent = item.back;
+  document.getElementById(`${mode}-karte`).classList.remove('flipped');
+  STATE.wortFlipped[mode] = false;
+  document.getElementById(`${mode}-counter`).textContent = `${idx+1} / ${data.length}`;
 }
 
 // Init
