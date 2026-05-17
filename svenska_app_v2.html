@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Katharinas Svenska — Lernapp</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg:#F5F0E8; --bg2:#EDE8DC; --white:#FFFDF8;
+  --ink:#1C1810; --ink2:#3D3525; --ink3:#8A7A62;
+  --gold:#C49A1A; --gold-bg:#FDF6E3; --gold-lt:#F0DC8A;
+  --blue:#1A4F7A; --blue-lt:#EAF0FB;
+  --red:#8B2020; --red-lt:#FBF0EE;
+  --green:#2A6030; --green-lt:#EAF5EC;
+  --border:#DDD0B8; --shadow:0 4px 24px rgba(28,24,16,0.10);
+  --radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--ink);min-height:100vh;}
+
+/* SCREENS */
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* START */
+#sc-start{align-items:center;justify-content:center;padding:2rem;
+  background:radial-gradient(ellipse at 30% 20%,#E8F0FB,var(--bg) 60%);}
+.start-flag{font-size:4rem;margin-bottom:1rem;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.start-title{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;text-align:center;margin-bottom:.5rem;}
+.start-sub{font-size:.95rem;color:var(--ink3);text-align:center;margin-bottom:3rem;}
+.src-cards{display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:440px;width:100%;}
+@media(max-width:480px){.src-cards{grid-template-columns:1fr;}}
+.src-card{background:var(--white);border:2px solid var(--border);border-radius:var(--radius);
+  padding:1.5rem;text-align:center;cursor:pointer;transition:all .2s;box-shadow:var(--shadow);}
+.src-card:hover{border-color:var(--gold);transform:translateY(-3px);}
+.src-card .ic{font-size:2.5rem;margin-bottom:.75rem;}
+.src-card h3{font-family:'Playfair Display',serif;font-size:1.05rem;margin-bottom:.3rem;}
+.src-card p{font-size:.8rem;color:var(--ink3);line-height:1.5;}
+.start-hint{font-size:.78rem;color:var(--ink3);margin-top:1.5rem;}
+
+/* LOADING */
+#sc-load{align-items:center;justify-content:center;gap:1.5rem;}
+.spinner{width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--blue);
+  border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.load-txt{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--ink2);}
+
+/* APP */
+#sc-app{flex-direction:column;}
+.app-hdr{background:var(--ink);color:#fff;padding:.875rem 1.25rem;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  position:sticky;top:0;z-index:100;}
+.hdr-left{display:flex;align-items:center;gap:.75rem;}
+.hdr-flag{font-size:1.5rem;}
+.hdr-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;}
+.hdr-sub{font-size:.72rem;color:rgba(255,255,255,.5);margin-top:1px;}
+.hdr-btn{padding:6px 12px;border-radius:8px;border:1.5px solid rgba(255,255,255,.2);
+  background:transparent;color:rgba(255,255,255,.8);font-family:'DM Sans',sans-serif;
+  font-size:.78rem;font-weight:600;cursor:pointer;}
+.hdr-btn:hover{background:rgba(255,255,255,.1);}
+
+/* BEREICH NAV */
+.ber-nav{background:var(--white);border-bottom:2px solid var(--border);display:flex;overflow-x:auto;}
+.ber-btn{flex-shrink:0;padding:.875rem 1.25rem;border:none;background:transparent;
+  font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;color:var(--ink3);
+  cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+.ber-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;}
+
+/* TAB NAV */
+.tab-nav{background:var(--bg2);border-bottom:1.5px solid var(--border);
+  display:flex;overflow-x:auto;padding:0 .5rem;}
+.tab-btn{flex-shrink:0;padding:.6rem 1rem;border:none;background:transparent;
+  font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;color:var(--ink3);
+  cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;margin:0 2px;}
+.tab-btn.active{color:var(--ink);border-bottom-color:var(--ink);font-weight:600;}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:1.25rem;}
+.bereich{display:none;}
+.bereich.active{display:block;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* TEXT */
+.text-topbar{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap;}
+.play-all{padding:8px 18px;border-radius:8px;border:none;background:var(--blue);
+  color:#fff;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;}
+.play-all:hover{background:#1A3F6A;}
+.absblock{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:1.25rem;margin-bottom:1rem;box-shadow:var(--shadow);}
+.abs-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;
+  margin-bottom:.875rem;padding-bottom:.5rem;border-bottom:1.5px solid var(--border);}
+.abs-name{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);}
+.abs-satz{font-size:.92rem;line-height:1.7;margin-bottom:.4rem;}
+.abs-satz:last-child{margin-bottom:0;}
+
+/* TABLES */
+.gt{width:100%;border-collapse:collapse;background:var(--white);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow);margin-bottom:1rem;}
+.gt th{background:var(--ink);color:#fff;padding:9px 10px;text-align:left;
+  font-size:.78rem;font-weight:600;white-space:nowrap;}
+.gt td{padding:9px 10px;border-bottom:1px solid var(--border);font-size:.83rem;vertical-align:top;line-height:1.5;}
+.gt tr:last-child td{border-bottom:none;}
+.gt tr:nth-child(even) td{background:var(--bg);}
+.gt tr:hover td{background:var(--blue-lt);}
+.gt .mw{font-weight:700;color:var(--ink);}
+.gt .sf{color:var(--ink2);}
+.gt .ex{color:var(--ink3);font-size:.78rem;font-style:italic;}
+.enett{display:inline-block;padding:1px 6px;border-radius:4px;font-weight:800;font-size:.72rem;}
+.enett.en{background:var(--green-lt);color:var(--green);}
+.enett.ett{background:var(--blue-lt);color:var(--blue);}
+
+/* VOK CARDS */
+.vok-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.875rem;}
+.vok-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;
+  padding:1rem;box-shadow:var(--shadow);}
+.vok-sv{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;}
+.vok-de{font-size:.88rem;color:var(--blue);font-weight:600;margin:3px 0;}
+.vok-typ{display:inline-block;font-size:.68rem;background:var(--gold-bg);color:var(--gold);
+  border-radius:4px;padding:1px 6px;font-weight:700;text-transform:uppercase;margin-bottom:4px;}
+.vok-def{font-size:.8rem;color:var(--ink3);line-height:1.5;margin-bottom:4px;}
+.vok-ex{font-size:.8rem;color:var(--ink2);font-style:italic;border-left:2px solid var(--border);padding-left:8px;}
+
+/* WORT TABLE */
+.wt{width:100%;border-collapse:collapse;background:var(--white);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow);}
+.wt th{background:var(--blue);color:#fff;padding:9px 12px;text-align:left;font-size:.82rem;font-weight:600;}
+.wt td{padding:8px 12px;border-bottom:1px solid var(--border);font-size:.88rem;vertical-align:middle;}
+.wt tr:nth-child(even) td{background:var(--bg);}
+.wt tr:hover td{background:var(--blue-lt);}
+.wc{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+
+/* AUDIO BUTTONS */
+.ab{display:inline-flex;align-items:center;padding:2px 5px;border-radius:5px;border:none;
+  background:transparent;cursor:pointer;font-size:.75rem;color:var(--ink3);}
+.ab:hover{background:var(--gold-bg);color:var(--gold);}
+.ab.sv{color:var(--blue);}
+.ab.sv:hover{background:var(--blue-lt);}
+.ab.de{color:var(--green);}
+.ab.de:hover{background:var(--green-lt);}
+.ext-lnk{font-size:.72rem;color:var(--ink3);text-decoration:none;padding:2px 5px;border-radius:5px;}
+.ext-lnk:hover{background:var(--gold-bg);color:var(--gold);}
+
+/* KARTEIKARTEN */
+.karte-wrap{display:flex;flex-direction:column;align-items:center;min-height:60vh;gap:1rem;justify-content:center;}
+.karte{background:var(--white);border:2px solid var(--border);border-radius:20px;
+  padding:3rem 2.5rem;text-align:center;width:100%;max-width:400px;
+  box-shadow:var(--shadow);cursor:pointer;min-height:180px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.karte:hover{border-color:var(--gold);}
+.k-front{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:600;}
+.k-back{font-size:1.1rem;color:var(--blue);font-weight:600;display:none;}
+.karte.flip .k-front{display:none;}
+.karte.flip .k-back{display:block;}
+.k-nav{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;justify-content:center;}
+.k-nav button{padding:8px 20px;border-radius:8px;border:1.5px solid var(--border);
+  background:var(--white);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;}
+.k-nav button:hover{background:var(--bg2);}
+.k-cnt{font-size:.85rem;color:var(--ink3);}
+
+/* VIEW TOGGLE + SEARCH */
+.vt-bar{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;}
+.vt-btn{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);
+  background:var(--white);font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;
+  cursor:pointer;color:var(--ink3);}
+.vt-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.search{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:.88rem;background:var(--white);color:var(--ink);flex:1;min-width:150px;}
+.search:focus{outline:none;border-color:var(--blue);}
+
+/* SEC LABEL */
+.sl{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--ink3);margin-bottom:.75rem;}
+
+/* EMPTY */
+.empty{text-align:center;padding:4rem 2rem;color:var(--ink3);}
+.empty h3{font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:.5rem;color:var(--ink2);}
+
+/* PLACEHOLDER */
+.ph{display:flex;align-items:center;justify-content:center;min-height:60vh;}
+.ph-box{text-align:center;padding:3rem;}
+.ph-box h3{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:.5rem;}
+.ph-box p{font-size:.88rem;color:var(--ink3);}
+
+@media(max-width:600px){
+  .start-title{font-size:1.8rem;}
+  .content{padding:.875rem;}
+  .vok-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- START -->
+<div id="sc-start" class="screen active">
+  <div class="start-flag">🇸🇪</div>
+  <h1 class="start-title">Katharinas Svenska</h1>
+  <p class="start-sub">Interaktives Lernprogramm · Birkenbihl-Methode · A1–A2</p>
+  <div class="src-cards">
+    <div class="src-card" id="btn-drive">
+      <div class="ic">☁️</div>
+      <h3>Google Drive</h3>
+      <p>Mit Google-Konto anmelden und Lernmaterial von Drive laden</p>
+    </div>
+    <div class="src-card" id="btn-local">
+      <div class="ic">📂</div>
+      <h3>Lokale Datei</h3>
+      <p>Excel-Datei direkt vom PC öffnen — kein Login nötig</p>
+    </div>
+  </div>
+  <p class="start-hint">Deine Daten bleiben privat und werden nie hochgeladen.</p>
+  <input type="file" id="file-in" accept=".xlsx,.xls" style="display:none"/>
+</div>
+
+<!-- LOADING -->
+<div id="sc-load" class="screen">
+  <div class="spinner"></div>
+  <div class="load-txt" id="load-txt">Lade…</div>
+</div>
+
+<!-- APP -->
+<div id="sc-app" class="screen">
+
+  <div class="app-hdr">
+    <div class="hdr-left">
+      <span class="hdr-flag">🇸🇪</span>
+      <div>
+        <div class="hdr-title">Katharinas Svenska</div>
+        <div class="hdr-sub" id="hdr-sub">—</div>
+      </div>
+    </div>
+    <button class="hdr-btn" id="btn-back">🏠 Zurück</button>
+  </div>
+
+  <div class="ber-nav">
+    <button class="ber-btn active" data-ber="lernen">📖 Lernen</button>
+    <button class="ber-btn" data-ber="grammatik">📝 Grammatik</button>
+    <button class="ber-btn" data-ber="spielen">🎮 Spielen</button>
+  </div>
+
+  <!-- LERNEN -->
+  <div class="bereich active" id="ber-lernen">
+    <div class="tab-nav">
+      <button class="tab-btn active" data-tab="text" data-ber="lernen">📖 Text</button>
+      <button class="tab-btn" data-tab="dekod" data-ber="lernen">🔵 Dekodierung</button>
+      <button class="tab-btn" data-tab="glossar" data-ber="lernen">📚 Glossar</button>
+      <button class="tab-btn" data-tab="svde" data-ber="lernen">🇸🇪→🇩🇪 SV→DE</button>
+      <button class="tab-btn" data-tab="desv" data-ber="lernen">🇩🇪→🇸🇪 DE→SV</button>
+    </div>
+    <div class="content">
+      <div class="tab-panel active" id="tp-text"><div class="empty"><h3>Lade eine Datei</h3></div></div>
+      <div class="tab-panel" id="tp-dekod"><div class="empty"><h3>Lade eine Datei</h3></div></div>
+      <div class="tab-panel" id="tp-glossar">
+        <div class="vt-bar">
+          <button class="vt-btn active" data-view="grid" data-tgt="glossar">🃏 Karten</button>
+          <button class="vt-btn" data-view="table" data-tgt="glossar">📋 Tabelle</button>
+          <input class="search" type="text" placeholder="Suchen…" id="s-glossar"/>
+        </div>
+        <div id="v-glossar-grid" class="vok-grid"></div>
+        <div id="v-glossar-table" style="display:none;overflow-x:auto;">
+          <table class="wt"><thead><tr><th>Schwedisch</th><th>Deutsch</th><th>Typ</th><th>Beispiel</th></tr></thead>
+          <tbody id="tb-glossar"></tbody></table>
+        </div>
+      </div>
+      <div class="tab-panel" id="tp-svde">
+        <div class="vt-bar">
+          <button class="vt-btn active" data-view="table" data-tgt="svde">📋 Tabelle</button>
+          <button class="vt-btn" data-view="karte" data-tgt="svde">🃏 Karteikarten</button>
+          <input class="search" type="text" placeholder="Suchen…" id="s-svde"/>
+        </div>
+        <div id="v-svde-table" style="overflow-x:auto;"><table class="wt"><thead><tr><th>🇸🇪 Schwedisch</th><th>🇩🇪 Deutsch</th></tr></thead><tbody id="tb-svde"></tbody></table></div>
+        <div id="v-svde-karte" class="karte-wrap" style="display:none;">
+          <div class="karte" id="k-svde"><div class="k-front" id="kf-svde">—</div><div class="k-back" id="kb-svde">—</div></div>
+          <p style="font-size:.78rem;color:var(--ink3);">Tippen zum Umdrehen</p>
+          <div class="k-nav">
+            <button id="kprev-svde">← Zurück</button>
+            <span class="k-cnt" id="kcnt-svde">1/1</span>
+            <button id="knext-svde">Weiter →</button>
+            <button class="ab sv" id="kaud-svde-sv">🔊🇸🇪</button>
+            <button class="ab de" id="kaud-svde-de">🔊🇩🇪</button>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tp-desv">
+        <div class="vt-bar">
+          <button class="vt-btn active" data-view="table" data-tgt="desv">📋 Tabelle</button>
+          <button class="vt-btn" data-view="karte" data-tgt="desv">🃏 Karteikarten</button>
+          <input class="search" type="text" placeholder="Suchen…" id="s-desv"/>
+        </div>
+        <div id="v-desv-table" style="overflow-x:auto;"><table class="wt"><thead><tr><th>🇩🇪 Deutsch</th><th>🇸🇪 Schwedisch</th></tr></thead><tbody id="tb-desv"></tbody></table></div>
+        <div id="v-desv-karte" class="karte-wrap" style="display:none;">
+          <div class="karte" id="k-desv"><div class="k-front" id="kf-desv">—</div><div class="k-back" id="kb-desv">—</div></div>
+          <p style="font-size:.78rem;color:var(--ink3);">Tippen zum Umdrehen</p>
+          <div class="k-nav">
+            <button id="kprev-desv">← Zurück</button>
+            <span class="k-cnt" id="kcnt-desv">1/1</span>
+            <button id="knext-desv">Weiter →</button>
+            <button class="ab de" id="kaud-desv-de">🔊🇩🇪</button>
+            <button class="ab sv" id="kaud-desv-sv">🔊🇸🇪</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRAMMATIK -->
+  <div class="bereich" id="ber-grammatik">
+    <div class="tab-nav">
+      <button class="tab-btn active" data-tab="verb" data-ber="grammatik">📝 Alla verb</button>
+      <button class="tab-btn" data-tab="oregelb" data-ber="grammatik">⭐ Oregelbundna</button>
+      <button class="tab-btn" data-tab="subst" data-ber="grammatik">🔵 Substantive</button>
+      <button class="tab-btn" data-tab="adj" data-ber="grammatik">🟡 Adjektive</button>
+    </div>
+    <div class="content">
+      <div class="tab-panel active" id="tp-verb"><div class="empty"><h3>Lade eine Datei</h3></div></div>
+      <div class="tab-panel" id="tp-oregelb"><div class="empty"><h3>Lade eine Datei</h3></div></div>
+      <div class="tab-panel" id="tp-subst"><div class="empty"><h3>Lade eine Datei</h3></div></div>
+      <div class="tab-panel" id="tp-adj"><div class="empty"><h3>Lade eine Datei</h3></div></div>
+    </div>
+  </div>
+
+  <!-- SPIELEN -->
+  <div class="bereich" id="ber-spielen">
+    <div class="ph"><div class="ph-box">
+      <h3>🎮 Spielen</h3>
+      <p>miniLÜK · Karteikarten · Memory · Quiz · Hangman<br>Kommt in Session 3!</p>
+    </div></div>
+  </div>
+
+</div><!-- end sc-app -->
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════
+var CLIENT_ID = '816235046461-mina7vpib1bmev8avb8k6rdjejn7t3tc.apps.googleusercontent.com';
+var DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
+var FOLDER_NAME = 'Katharinas Svenska Lernapp';
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+var DATA = { texte:[], vokabeln:[], verben:[], substantive:[], adjektive:[] };
+var KARTE = {
+  svde: { data:[], idx:0 },
+  desv: { data:[], idx:0 }
+};
+var driveToken = null;
+var driveSource = false;
+
+// ══════════════════════════════════════════
+// SCREEN MANAGEMENT
+// ══════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s) {
+    s.classList.remove('active');
+  });
+  document.getElementById(id).classList.add('active');
+}
+
+// ══════════════════════════════════════════
+// AUDIO
+// ══════════════════════════════════════════
+var synth = window.speechSynthesis;
+
+function speak(text, lang) {
+  if (!text || !synth) return;
+  synth.cancel();
+  var u = new SpeechSynthesisUtterance(String(text));
+  u.lang = lang || 'sv-SE';
+  u.rate = 0.85;
+  synth.speak(u);
+}
+
+function speakSeq(texts, lang, delay) {
+  if (!texts || !texts.length || !synth) return;
+  synth.cancel();
+  var i = 0;
+  delay = delay || 800;
+  function next() {
+    if (i >= texts.length) return;
+    var u = new SpeechSynthesisUtterance(String(texts[i]));
+    u.lang = lang || 'sv-SE';
+    u.rate = 0.85;
+    u.onend = function() { i++; setTimeout(next, delay); };
+    synth.speak(u);
+  }
+  next();
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+document.querySelectorAll('.ber-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var ber = this.dataset.ber;
+    document.querySelectorAll('.ber-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.bereich').forEach(function(b) { b.classList.remove('active'); });
+    this.classList.add('active');
+    document.getElementById('ber-' + ber).classList.add('active');
+  });
+});
+
+document.querySelectorAll('.tab-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var tab = this.dataset.tab;
+    var ber = this.dataset.ber;
+    var berEl = document.getElementById('ber-' + ber);
+    berEl.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    berEl.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    this.classList.add('active');
+    var tp = document.getElementById('tp-' + tab);
+    if (tp) tp.classList.add('active');
+  });
+});
+
+// View Toggle
+document.querySelectorAll('.vt-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var view = this.dataset.view;
+    var tgt = this.dataset.tgt;
+    var bar = this.closest('.vt-bar');
+    bar.querySelectorAll('.vt-btn').forEach(function(b) { b.classList.remove('active'); });
+    this.classList.add('active');
+    // Zeige/Verstecke Views
+    var grid = document.getElementById('v-' + tgt + '-grid');
+    var table = document.getElementById('v-' + tgt + '-table');
+    var karte = document.getElementById('v-' + tgt + '-karte');
+    if (grid) grid.style.display = (view === 'grid') ? 'grid' : 'none';
+    if (table) table.style.display = (view === 'table') ? 'block' : 'none';
+    if (karte) karte.style.display = (view === 'karte') ? 'flex' : 'none';
+  });
+});
+
+// Search
+document.getElementById('s-glossar').addEventListener('input', function() {
+  var q = this.value.toLowerCase();
+  document.querySelectorAll('#v-glossar-grid .vok-card').forEach(function(c) {
+    var match = c.dataset.q && c.dataset.q.includes(q);
+    c.style.display = match ? '' : 'none';
+  });
+  document.querySelectorAll('#tb-glossar tr').forEach(function(r) {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+document.getElementById('s-svde').addEventListener('input', function() {
+  var q = this.value.toLowerCase();
+  document.querySelectorAll('#tb-svde tr').forEach(function(r) {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+document.getElementById('s-desv').addEventListener('input', function() {
+  var q = this.value.toLowerCase();
+  document.querySelectorAll('#tb-desv tr').forEach(function(r) {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+
+// Back Button
+document.getElementById('btn-back').addEventListener('click', function() {
+  showScreen('sc-start');
+});
+
+// ══════════════════════════════════════════
+// KARTEIKARTEN
+// ══════════════════════════════════════════
+function initKarte(mode) {
+  var k = KARTE[mode];
+  updateKarte(mode);
+  document.getElementById('k-' + mode).onclick = function() {
+    this.classList.toggle('flip');
+  };
+  document.getElementById('kprev-' + mode).onclick = function() {
+    k.idx = (k.idx - 1 + k.data.length) % k.data.length;
+    document.getElementById('k-' + mode).classList.remove('flip');
+    updateKarte(mode);
+  };
+  document.getElementById('knext-' + mode).onclick = function() {
+    k.idx = (k.idx + 1) % k.data.length;
+    document.getElementById('k-' + mode).classList.remove('flip');
+    updateKarte(mode);
+  };
+  if (mode === 'svde') {
+    document.getElementById('kaud-svde-sv').onclick = function() {
+      speak(document.getElementById('kf-svde').textContent, 'sv-SE');
+    };
+    document.getElementById('kaud-svde-de').onclick = function() {
+      speak(document.getElementById('kb-svde').textContent, 'de-DE');
+    };
+  } else {
+    document.getElementById('kaud-desv-de').onclick = function() {
+      speak(document.getElementById('kf-desv').textContent, 'de-DE');
+    };
+    document.getElementById('kaud-desv-sv').onclick = function() {
+      speak(document.getElementById('kb-desv').textContent, 'sv-SE');
+    };
+  }
+}
+
+function updateKarte(mode) {
+  var k = KARTE[mode];
+  if (!k.data.length) return;
+  var item = k.data[k.idx];
+  document.getElementById('kf-' + mode).textContent = item.front;
+  document.getElementById('kb-' + mode).textContent = item.back;
+  document.getElementById('kcnt-' + mode).textContent = (k.idx + 1) + ' / ' + k.data.length;
+}
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function findKey(row, candidates) {
+  var keys = Object.keys(row);
+  for (var i = 0; i < candidates.length; i++) {
+    var found = keys.find(function(k) { return k.includes(candidates[i]); });
+    if (found) return found;
+  }
+  return keys[0];
+}
+
+// ══════════════════════════════════════════
+// EXCEL PARSEN
+// ══════════════════════════════════════════
+function parseSheet(wb, nameHint) {
+  var sheet = null;
+  wb.SheetNames.forEach(function(n) {
+    if (n.toLowerCase().includes(nameHint.toLowerCase())) sheet = wb.Sheets[n];
+  });
+  if (!sheet) return [];
+
+  // Finde Header-Zeile: erste Zeile mit mehr als 1 nicht-leerer Zelle
+  var range = XLSX.utils.decode_range(sheet['!ref'] || 'A1:Z1');
+  var headerRow = range.s.r;
+  for (var r = range.s.r; r <= Math.min(range.e.r, 10); r++) {
+    var count = 0;
+    for (var c = range.s.c; c <= range.e.c; c++) {
+      var cell = sheet[XLSX.utils.encode_cell({r:r, c:c})];
+      if (cell && cell.v) count++;
+    }
+    if (count > 1) { headerRow = r; break; }
+  }
+
+  var newRange = XLSX.utils.encode_range({
+    s: {r: headerRow, c: range.s.c},
+    e: range.e
+  });
+
+  return XLSX.utils.sheet_to_json(sheet, {defval:'', range: newRange, raw:false});
+}
+
+function loadWorkbook(wb) {
+  // Texte
+  DATA.texte = parseSheet(wb, 'Text').filter(function(r) {
+    return r['Schwedisch (Original)'] || r['Schwedisch'];
+  });
+
+  // Vokabeln
+  DATA.vokabeln = parseSheet(wb, 'Vokabel').filter(function(r) {
+    return (r['Schwedisch'] || r['SV']) && (r['Deutsch'] || r['DE']);
+  });
+
+  // Verben
+  DATA.verben = parseSheet(wb, 'Verb').filter(function(r) {
+    var keys = Object.keys(r);
+    return keys.some(function(k) { return k.includes('Grundform') || k.includes('Infinitiv'); }) &&
+           keys.some(function(k) { return r[k]; });
+  });
+
+  // Substantive
+  DATA.substantive = parseSheet(wb, 'Subst').filter(function(r) {
+    return r['Deutsch'] && (r['en/ett'] || r['Grundform\n(obestämd)'] || r['Grundform']);
+  });
+
+  // Adjektive
+  DATA.adjektive = parseSheet(wb, 'Adj').filter(function(r) {
+    var keys = Object.keys(r);
+    return keys.some(function(k) { return k.includes('Positiv') && r[k]; });
+  });
+
+  console.log('Geladen:', {
+    texte: DATA.texte.length,
+    vokabeln: DATA.vokabeln.length,
+    verben: DATA.verben.length,
+    substantive: DATA.substantive.length,
+    adjektive: DATA.adjektive.length
+  });
+}
+
+// ══════════════════════════════════════════
+// BUILD UI
+// ══════════════════════════════════════════
+function buildAll() {
+  buildText();
+  buildDekod();
+  buildGlossar();
+  buildSvDe();
+  buildDeSv();
+  buildVerben();
+  buildSubstantive();
+  buildAdjektive();
+  initKarte('svde');
+  initKarte('desv');
+}
+
+function buildText() {
+  var rows = DATA.texte;
+  if (!rows.length) return;
+  var svK = findKey(rows[0], ['Schwedisch']);
+  var secK = findKey(rows[0], ['Abschnitt', 'avsnitt']);
+
+  // Gruppiere nach Abschnitt
+  var groups = {};
+  var order = [];
+  rows.forEach(function(r) {
+    var sec = r[secK] || 'Text';
+    var sv = r[svK] || '';
+    if (!sv) return;
+    if (!groups[sec]) { groups[sec] = []; order.push(sec); }
+    groups[sec].push(sv);
+  });
+
+  var allSv = rows.map(function(r) { return r[svK]; }).filter(Boolean);
+  var html = '<div class="text-topbar">' +
+    '<button class="play-all" id="btn-play-all">🔊 Ganzen Text vorlesen</button>' +
+    '<span style="font-size:.82rem;color:var(--ink3);">' + allSv.length + ' Sätze · ' + order.length + ' Abschnitte</span>' +
+    '</div>';
+
+  order.forEach(function(sec, si) {
+    var saetze = groups[sec];
+    html += '<div class="absblock">' +
+      '<div class="abs-hdr">' +
+      '<span class="abs-name">' + esc(sec) + '</span>' +
+      '<button class="ab sv" id="btn-abs-' + si + '">🔊 Abschnitt</button>' +
+      '</div>' +
+      saetze.map(function(s) { return '<div class="abs-satz">' + esc(s) + '</div>'; }).join('') +
+      '</div>';
+  });
+
+  document.getElementById('tp-text').innerHTML = html;
+
+  // Event Listeners nach innerHTML
+  document.getElementById('btn-play-all').addEventListener('click', function() {
+    speakSeq(allSv, 'sv-SE', 400);
+  });
+  order.forEach(function(sec, si) {
+    var btn = document.getElementById('btn-abs-' + si);
+    if (btn) {
+      var saetze = groups[sec];
+      btn.addEventListener('click', function() {
+        speakSeq(saetze, 'sv-SE', 400);
+      });
+    }
+  });
+}
+
+function buildDekod() {
+  var rows = DATA.texte;
+  if (!rows.length) return;
+  var svK = findKey(rows[0], ['Schwedisch']);
+  var deK = findKey(rows[0], ['Dekodieru', 'Deutsch']);
+
+  var html = '<div style="overflow-x:auto;"><table class="gt">' +
+    '<thead><tr><th>#</th><th>Schwedisch</th><th>Deutsch (wortgetreu)</th></tr></thead><tbody>';
+
+  rows.forEach(function(r, i) {
+    var sv = r[svK] || '';
+    var de = r[deK] || '';
+    if (!sv) return;
+    html += '<tr><td style="color:var(--ink3);font-size:.78rem;">' + (i+1) + '</td>' +
+      '<td><span style="font-weight:600;">' + esc(sv) + '</span></td>' +
+      '<td style="color:var(--ink3);font-style:italic;">' + esc(de) + '</td></tr>';
+  });
+
+  html += '</tbody></table></div>';
+  document.getElementById('tp-dekod').innerHTML = html;
+}
+
+function buildGlossar() {
+  var rows = DATA.vokabeln.slice().sort(function(a,b) {
+    return (a['Schwedisch']||'').localeCompare(b['Schwedisch']||'', 'sv');
+  });
+  if (!rows.length) return;
+
+  var svK = 'Schwedisch', deK = 'Deutsch', typK = 'Typ';
+  var defK = findKey(rows[0], ['Definition']);
+  var exK = findKey(rows[0], ['Beispiel']);
+
+  // Grid
+  var gridHtml = rows.map(function(r) {
+    var sv = r[svK] || '';
+    var de = r[deK] || '';
+    return '<div class="vok-card" data-q="' + esc((sv+' '+de).toLowerCase()) + '">' +
+      '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">' +
+      '<span class="vok-sv">' + esc(sv) + '</span>' +
+      '<button class="ab sv" data-sv="' + esc(sv) + '">🔊🇸🇪</button>' +
+      '<a class="ext-lnk" href="https://www.svenska.se/?q=' + encodeURIComponent(sv) + '" target="_blank">📖</a>' +
+      '</div>' +
+      '<div class="vok-de">' + esc(de) + '</div>' +
+      '<span class="vok-typ">' + esc(r[typK]||'') + '</span>' +
+      '<div class="vok-def">' + esc(r[defK]||'') + '</div>' +
+      (r[exK] ? '<div class="vok-ex">' + esc(r[exK]) + '</div>' : '') +
+      '</div>';
+  }).join('');
+  document.getElementById('v-glossar-grid').innerHTML = gridHtml;
+
+  // Tabelle
+  var tblHtml = rows.map(function(r) {
+    var sv = r[svK] || '';
+    var de = r[deK] || '';
+    return '<tr>' +
+      '<td><strong>' + esc(sv) + '</strong> <button class="ab sv" data-sv="' + esc(sv) + '">🔊🇸🇪</button>' +
+      ' <a class="ext-lnk" href="https://www.svenska.se/?q=' + encodeURIComponent(sv) + '" target="_blank">📖</a></td>' +
+      '<td>' + esc(de) + '</td>' +
+      '<td><span class="vok-typ">' + esc(r[typK]||'') + '</span></td>' +
+      '<td style="font-size:.8rem;color:var(--ink3);">' + esc(r[exK]||'') + '</td>' +
+      '</tr>';
+  }).join('');
+  document.getElementById('tb-glossar').innerHTML = tblHtml;
+
+  // Audio-Delegation
+  document.getElementById('v-glossar-grid').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-sv]');
+    if (btn) speak(btn.dataset.sv, 'sv-SE');
+  });
+  document.getElementById('tb-glossar').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-sv]');
+    if (btn) speak(btn.dataset.sv, 'sv-SE');
+  });
+}
+
+function buildSvDe() {
+  var rows = DATA.vokabeln.slice().sort(function(a,b) {
+    return (a['Schwedisch']||'').localeCompare(b['Schwedisch']||'', 'sv');
+  });
+  if (!rows.length) return;
+
+  var html = rows.map(function(r) {
+    var sv = r['Schwedisch'] || '';
+    var de = r['Deutsch'] || '';
+    return '<tr>' +
+      '<td><div class="wc"><strong>' + esc(sv) + '</strong>' +
+      '<button class="ab sv" data-sv="' + esc(sv) + '">🔊🇸🇪</button></div></td>' +
+      '<td><div class="wc">' + esc(de) +
+      '<button class="ab de" data-de="' + esc(de) + '">🔊🇩🇪</button></div></td>' +
+      '</tr>';
+  }).join('');
+  document.getElementById('tb-svde').innerHTML = html;
+
+  document.getElementById('tb-svde').addEventListener('click', function(e) {
+    var bsv = e.target.closest('[data-sv]');
+    var bde = e.target.closest('[data-de]');
+    if (bsv) speak(bsv.dataset.sv, 'sv-SE');
+    if (bde) speak(bde.dataset.de, 'de-DE');
+  });
+
+  KARTE.svde.data = shuffle(rows.map(function(r) {
+    return {front: r['Schwedisch']||'', back: r['Deutsch']||''};
+  }));
+}
+
+function buildDeSv() {
+  var rows = DATA.vokabeln.slice().sort(function(a,b) {
+    return (a['Deutsch']||'').localeCompare(b['Deutsch']||'', 'de');
+  });
+  if (!rows.length) return;
+
+  var html = rows.map(function(r) {
+    var sv = r['Schwedisch'] || '';
+    var de = r['Deutsch'] || '';
+    return '<tr>' +
+      '<td><div class="wc"><strong>' + esc(de) + '</strong>' +
+      '<button class="ab de" data-de="' + esc(de) + '">🔊🇩🇪</button></div></td>' +
+      '<td><div class="wc">' + esc(sv) +
+      '<button class="ab sv" data-sv="' + esc(sv) + '">🔊🇸🇪</button></div></td>' +
+      '</tr>';
+  }).join('');
+  document.getElementById('tb-desv').innerHTML = html;
+
+  document.getElementById('tb-desv').addEventListener('click', function(e) {
+    var bsv = e.target.closest('[data-sv]');
+    var bde = e.target.closest('[data-de]');
+    if (bsv) speak(bsv.dataset.sv, 'sv-SE');
+    if (bde) speak(bde.dataset.de, 'de-DE');
+  });
+
+  KARTE.desv.data = shuffle(rows.map(function(r) {
+    return {front: r['Deutsch']||'', back: r['Schwedisch']||''};
+  }));
+}
+
+function buildVerben() {
+  var rows = DATA.verben;
+  if (!rows.length) { document.getElementById('tp-verb').innerHTML = '<div class="empty"><h3>Keine Verben gefunden</h3></div>'; return; }
+
+  var k = Object.keys(rows[0]);
+  var deK = k.find(function(x){return x==='Deutsch';}) || k[0];
+  var grK = k.find(function(x){return x.includes('Grundform');}) || k[1];
+  var prK = k.find(function(x){return x==='Präsens';}) || k[2];
+  var ptK = k.find(function(x){return x==='Präteritum';}) || k[3];
+  var suK = k.find(function(x){return x==='Supinum';}) || k[4];
+  var imK = k.find(function(x){return x==='Imperativ';}) || k[5];
+  var exK = k.find(function(x){return x.includes('Beispiel');}) || k[6];
+  var stK = k.find(function(x){return x.includes('Stark');}) || k[7];
+
+  var sorted = rows.slice().sort(function(a,b){
+    return (a[grK]||'').localeCompare(b[grK]||'','sv');
+  });
+
+  function makeTable(arr) {
+    var h = '<div style="overflow-x:auto;"><table class="gt">' +
+      '<thead><tr><th>Deutsch</th><th>Grundform</th><th>Präsens</th>' +
+      '<th>Präteritum</th><th>Supinum</th><th>Imperativ</th><th>Beispielsätze</th><th>🔊</th>' +
+      '</tr></thead><tbody>';
+
+    arr.forEach(function(r, ri) {
+      var gr = r[grK]||'', pr = r[prK]||'', pt = r[ptK]||'', su = r[suK]||'';
+      var im = r[imK]||'', ex = r[exK]||'', st = (r[stK]||'').includes('JA');
+      var forms = [pr,pt,su].filter(Boolean);
+      var exArr = ex.split('/').map(function(s){return s.trim();}).filter(Boolean);
+      h += '<tr>' +
+        '<td class="sf">' + esc(r[deK]||'') + (st?' <span style="color:var(--gold);font-size:.7rem;">★</span>':'') + '</td>' +
+        '<td class="mw" data-gr="' + esc(gr) + '">' + esc(gr) + ' <button class="ab sv" data-idx="gr-' + ri + '">🔊</button></td>' +
+        '<td>' + esc(pr) + '</td>' +
+        '<td>' + esc(pt) + '</td>' +
+        '<td>' + esc(su) + '</td>' +
+        '<td>' + (im&&im!=='—'?esc(im):'<span style="color:var(--ink3)">—</span>') + '</td>' +
+        '<td class="ex">' + esc(ex).replace(/\//g,'<br/>') + '</td>' +
+        '<td style="white-space:nowrap;">' +
+        '<button class="ab sv" data-forms="' + esc(JSON.stringify(forms)) + '" data-type="seq">🔊¹</button>' +
+        '<button class="ab sv" data-forms="' + esc(JSON.stringify(exArr)) + '" data-type="seq-slow">🔊²</button>' +
+        '</td></tr>';
+    });
+    h += '</tbody></table></div>';
+    return h;
+  }
+
+  var verbHtml = makeTable(sorted);
+  document.getElementById('tp-verb').innerHTML = verbHtml;
+
+  var oregelbArr = sorted.filter(function(r){return (r[stK]||'').includes('JA');});
+  document.getElementById('tp-oregelb').innerHTML = makeTable(oregelbArr);
+
+  // Audio-Delegation für beide Tabellen
+  ['tp-verb','tp-oregelb'].forEach(function(id) {
+    document.getElementById(id).addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-type]');
+      if (btn) {
+        var forms = JSON.parse(btn.dataset.forms || '[]');
+        var delay = btn.dataset.type === 'seq-slow' ? 1200 : 700;
+        speakSeq(forms, 'sv-SE', delay);
+        return;
+      }
+      var gbtn = e.target.closest('.ab[data-idx]');
+      if (gbtn) {
+        var td = gbtn.closest('td');
+        speak(td.dataset.gr || gbtn.previousSibling && gbtn.previousSibling.textContent, 'sv-SE');
+      }
+    });
+  });
+}
+
+function buildSubstantive() {
+  var rows = DATA.substantive;
+  if (!rows.length) { document.getElementById('tp-subst').innerHTML = '<div class="empty"><h3>Keine Substantive gefunden</h3></div>'; return; }
+
+  var k = Object.keys(rows[0]);
+  var deK = k.find(function(x){return x==='Deutsch';}) || k[0];
+  var enK = k.find(function(x){return x.includes('en/ett');}) || k[1];
+  var grK = k.find(function(x){return x.includes('Grundform');}) || k[2];
+  var beK = k.find(function(x){return x.includes('Bestimmt');}) || k[3];
+  var p1K = k.find(function(x){return x.includes('obestämd')||x.includes('Plural')&&x.includes('ob');}) || k[4];
+  var p2K = k.find(function(x){return x.includes('bestämd')&&x.includes('Plural');}) || k[5];
+  var exK = k.find(function(x){return x.includes('Beispiel');}) || k[6];
+
+  var sorted = rows.slice().sort(function(a,b){
+    return (a[grK]||'').localeCompare(b[grK]||'','sv');
+  });
+
+  var h = '<div style="overflow-x:auto;"><table class="gt">' +
+    '<thead><tr><th>Deutsch</th><th>en/ett</th><th>Grundform</th>' +
+    '<th>Bestimmt Sg.</th><th>Plural ob.</th><th>Plural best.</th>' +
+    '<th>Beispielsätze</th><th>🔊</th></tr></thead><tbody>';
+
+  sorted.forEach(function(r, ri) {
+    var en = (r[enK]||'').trim();
+    var gr = r[grK]||'', be = r[beK]||'', p1 = r[p1K]||'', p2 = r[p2K]||'', ex = r[exK]||'';
+    var forms = [gr,be,p1,p2].filter(Boolean);
+    var exArr = ex.split('/').map(function(s){return s.trim();}).filter(Boolean);
+    h += '<tr>' +
+      '<td class="sf">' + esc(r[deK]||'') + '</td>' +
+      '<td><span class="enett ' + esc(en) + '">' + esc(en) + '</span></td>' +
+      '<td class="mw">' + esc(gr) + '</td>' +
+      '<td>' + esc(be) + '</td>' +
+      '<td>' + esc(p1) + '</td>' +
+      '<td>' + esc(p2) + '</td>' +
+      '<td class="ex">' + esc(ex).replace(/\//g,'<br/>') + '</td>' +
+      '<td style="white-space:nowrap;">' +
+      '<button class="ab sv" data-forms="' + esc(JSON.stringify(forms)) + '" data-type="seq">🔊¹</button>' +
+      '<button class="ab sv" data-forms="' + esc(JSON.stringify(exArr)) + '" data-type="seq-slow">🔊²</button>' +
+      '</td></tr>';
+  });
+
+  h += '</tbody></table></div>';
+  document.getElementById('tp-subst').innerHTML = h;
+
+  document.getElementById('tp-subst').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-type]');
+    if (btn) {
+      var forms = JSON.parse(btn.dataset.forms || '[]');
+      var delay = btn.dataset.type === 'seq-slow' ? 1200 : 700;
+      speakSeq(forms, 'sv-SE', delay);
+    }
+  });
+}
+
+function buildAdjektive() {
+  var rows = DATA.adjektive;
+  if (!rows.length) { document.getElementById('tp-adj').innerHTML = '<div class="empty"><h3>Keine Adjektive gefunden</h3></div>'; return; }
+
+  var k = Object.keys(rows[0]);
+  var deK = k.find(function(x){return x.includes('Deutsch');}) || k[0];
+  var p1K = k.find(function(x){return x.includes('Positiv')&&x.includes('en');}) || k[1];
+  var p2K = k.find(function(x){return x.includes('Positiv')&&x.includes('ett');}) || k[2];
+  var p3K = k.find(function(x){return x.includes('Positiv')&&(x.includes('Pl')||x.includes('Best'));}) || k[3];
+  var koK = k.find(function(x){return x.includes('Komparativ');}) || k[5];
+  var s1K = k.find(function(x){return x.includes('prädik');}) || k[6];
+  var s2K = k.find(function(x){return x.includes('attrib');}) || k[7];
+  var exK = k.find(function(x){return x.includes('Beispiel');}) || k[9];
+
+  var sorted = rows.slice().sort(function(a,b){
+    return (a[p1K]||'').localeCompare(b[p1K]||'','sv');
+  });
+
+  var h = '<div style="overflow-x:auto;"><table class="gt">' +
+    '<thead><tr>' +
+    '<th>Deutsch</th><th>Pos. en</th><th>Pos. ett</th><th>Pos. Pl./Best.</th><th>🔊¹</th>' +
+    '<th>Komparativ</th><th>Sup. prädik.</th><th>Sup. attrib.</th><th>🔊²</th>' +
+    '<th>Beispielsätze</th><th>🔊³</th>' +
+    '</tr></thead><tbody>';
+
+  sorted.forEach(function(r) {
+    var p1=r[p1K]||'', p2=r[p2K]||'', p3=r[p3K]||'';
+    var ko=r[koK]||'', s1=r[s1K]||'', s2=r[s2K]||'', ex=r[exK]||'';
+    var posArr = [p1,p2,p3].filter(Boolean);
+    var stArr = [ko,s1,s2].filter(function(x){return x&&x!=='—';});
+    var exArr = ex.split('/').map(function(s){return s.trim();}).filter(Boolean);
+    h += '<tr>' +
+      '<td class="sf">' + esc(r[deK]||'') + '</td>' +
+      '<td class="mw">' + esc(p1) + '</td>' +
+      '<td>' + esc(p2) + '</td>' +
+      '<td>' + esc(p3) + '</td>' +
+      '<td><button class="ab sv" data-forms="' + esc(JSON.stringify(posArr)) + '" data-type="seq">🔊</button></td>' +
+      '<td>' + (ko&&ko!=='—'?esc(ko):'<span style="color:var(--ink3)">—</span>') + '</td>' +
+      '<td>' + (s1&&s1!=='—'?esc(s1):'<span style="color:var(--ink3)">—</span>') + '</td>' +
+      '<td>' + (s2&&s2!=='—'?esc(s2):'<span style="color:var(--ink3)">—</span>') + '</td>' +
+      '<td><button class="ab sv" data-forms="' + esc(JSON.stringify(stArr)) + '" data-type="seq">🔊</button></td>' +
+      '<td class="ex">' + esc(ex).replace(/\//g,'<br/>') + '</td>' +
+      '<td><button class="ab sv" data-forms="' + esc(JSON.stringify(exArr)) + '" data-type="seq-slow">🔊</button></td>' +
+      '</tr>';
+  });
+
+  h += '</tbody></table></div>';
+  document.getElementById('tp-adj').innerHTML = h;
+
+  document.getElementById('tp-adj').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-type]');
+    if (btn) {
+      var forms = JSON.parse(btn.dataset.forms || '[]');
+      var delay = btn.dataset.type === 'seq-slow' ? 1200 : 700;
+      speakSeq(forms, 'sv-SE', delay);
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+// FILE LOADING
+// ══════════════════════════════════════════
+function processFile(arrayBuffer, filename) {
+  try {
+    var wb = XLSX.read(arrayBuffer, {type:'array'});
+    loadWorkbook(wb);
+    buildAll();
+    document.getElementById('hdr-sub').textContent = filename;
+    showScreen('sc-app');
+  } catch(err) {
+    console.error(err);
+    alert('Fehler beim Lesen: ' + err.message);
+    showScreen('sc-start');
+  }
+}
+
+// Lokale Datei
+document.getElementById('btn-local').addEventListener('click', function() {
+  document.getElementById('file-in').click();
+});
+
+document.getElementById('file-in').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('load-txt').textContent = 'Lade ' + file.name + '…';
+  showScreen('sc-load');
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    processFile(ev.target.result, file.name);
+  };
+  reader.onerror = function() {
+    alert('Fehler beim Lesen der Datei.');
+    showScreen('sc-start');
+  };
+  reader.readAsArrayBuffer(file);
+  // Reset damit dieselbe Datei nochmal gewählt werden kann
+  this.value = '';
+});
+
+// Google Drive
+document.getElementById('btn-drive').addEventListener('click', function() {
+  document.getElementById('load-txt').textContent = 'Lade Google Script…';
+  showScreen('sc-load');
+  loadGoogleScript();
+});
+
+function loadGoogleScript() {
+  if (window.google && window.google.accounts) {
+    startDriveLogin();
+    return;
+  }
+  var s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.onload = function() { setTimeout(startDriveLogin, 300); };
+  s.onerror = function() {
+    alert('Google Script konnte nicht geladen werden.\nBitte Chrome verwenden und Internetverbindung prüfen.');
+    showScreen('sc-start');
+  };
+  document.head.appendChild(s);
+}
+
+function startDriveLogin() {
+  document.getElementById('load-txt').textContent = 'Google Login…';
+  try {
+    var client = window.google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: DRIVE_SCOPE,
+      callback: function(resp) {
+        if (resp.error) {
+          alert('Login fehlgeschlagen: ' + resp.error);
+          showScreen('sc-start');
+          return;
+        }
+        driveToken = resp.access_token;
+        loadFromDrive('familj.xlsx');
+      }
+    });
+    client.requestAccessToken();
+  } catch(err) {
+    alert('OAuth Fehler: ' + err.message);
+    showScreen('sc-start');
+  }
+}
+
+function driveGet(path) {
+  return fetch('https://www.googleapis.com/drive/v3/' + path, {
+    headers: {Authorization: 'Bearer ' + driveToken}
+  }).then(function(r) {
+    if (!r.ok) throw new Error('Drive API ' + r.status);
+    return r;
+  });
+}
+
+function loadFromDrive(filename) {
+  document.getElementById('load-txt').textContent = 'Suche ' + filename + '…';
+
+  driveGet("files?q=name='" + FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder'&fields=files(id)")
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (!data.files || !data.files.length) throw new Error('Ordner "' + FOLDER_NAME + '" nicht gefunden.');
+    var folderId = data.files[0].id;
+    return driveGet("files?q=name='" + filename + "' and '" + folderId + "' in parents&fields=files(id,name)");
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (!data.files || !data.files.length) throw new Error('"' + filename + '" nicht im Ordner gefunden.');
+    var fileId = data.files[0].id;
+    document.getElementById('load-txt').textContent = 'Lade ' + filename + '…';
+    return driveGet('files/' + fileId + '?alt=media');
+  })
+  .then(function(r) { return r.arrayBuffer(); })
+  .then(function(buf) {
+    processFile(buf, filename);
+  })
+  .catch(function(err) {
+    alert('Drive Fehler: ' + err.message);
+    showScreen('sc-start');
+  });
+}
+</script>
+</body>
+</html>
