@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Katharinas Svenska — Lernapp</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg:#F5F0E8; --bg2:#EDE8DC; --white:#FFFDF8;
+  --ink:#1C1810; --ink2:#3D3525; --ink3:#8A7A62;
+  --gold:#C49A1A; --gold-bg:#FDF6E3; --gold-lt:#F0DC8A;
+  --blue:#1A4F7A; --blue-lt:#EAF0FB;
+  --red:#8B2020; --red-lt:#FBF0EE;
+  --green:#2A6030; --green-lt:#EAF5EC;
+  --border:#DDD0B8; --shadow:0 4px 24px rgba(28,24,16,0.10);
+  --radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--ink);min-height:100vh;}
+
+/* SCREENS */
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* START */
+#sc-start{align-items:center;justify-content:center;padding:2rem;
+  background:radial-gradient(ellipse at 30% 20%,#E8F0FB,var(--bg) 60%);}
+.start-flag{font-size:4rem;margin-bottom:1rem;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.start-title{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;text-align:center;margin-bottom:.5rem;}
+.start-sub{font-size:.95rem;color:var(--ink3);text-align:center;margin-bottom:3rem;}
+.src-cards{display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:440px;width:100%;}
+@media(max-width:480px){.src-cards{grid-template-columns:1fr;}}
+.src-card{background:var(--white);border:2px solid var(--border);border-radius:var(--radius);
+  padding:1.5rem;text-align:center;cursor:pointer;transition:all .2s;box-shadow:var(--shadow);}
+.src-card:hover{border-color:var(--gold);transform:translateY(-3px);}
+.src-card .ic{font-size:2.5rem;margin-bottom:.75rem;}
+.src-card h3{font-family:'Playfair Display',serif;font-size:1.05rem;margin-bottom:.3rem;}
+.src-card p{font-size:.8rem;color:var(--ink3);line-height:1.5;}
+.start-hint{font-size:.78rem;color:var(--ink3);margin-top:1.5rem;}
+
+/* LOADING */
+#sc-load{align-items:center;justify-content:center;gap:1.5rem;}
+.spinner{width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--blue);
+  border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.load-txt{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--ink2);}
+
+/* APP */
+#sc-app{flex-direction:column;}
+.app-hdr{background:var(--ink);color:#fff;padding:.875rem 1.25rem;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  position:sticky;top:0;z-index:100;}
+.hdr-left{display:flex;align-items:center;gap:.75rem;}
+.hdr-flag{font-size:1.5rem;}
+.hdr-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;}
+.hdr-sub{font-size:.72rem;color:rgba(255,255,255,.5);margin-top:1px;}
+.hdr-btn{padding:6px 12px;border-radius:8px;border:1.5px solid rgba(255,255,255,.2);
+  background:transparent;color:rgba(255,255,255,.8);font-family:'DM Sans',sans-serif;
+  font-size:.78rem;font-weight:600;cursor:pointer;}
+.hdr-btn:hover{background:rgba(255,255,255,.1);}
+
+/* BEREICH NAV */
+.ber-nav{background:var(--white);border-bottom:2px solid var(--border);display:flex;overflow-x:auto;}
+.ber-btn{flex-shrink:0;padding:.875rem 1.25rem;border:none;background:transparent;
+  font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;color:var(--ink3);
+  cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+.ber-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;}
+
+/* TAB NAV */
+.tab-nav{background:var(--bg2);border-bottom:1.5px solid var(--border);
+  display:flex;overflow-x:auto;padding:0 .5rem;}
+.tab-btn{flex-shrink:0;padding:.6rem 1rem;border:none;background:transparent;
+  font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;color:var(--ink3);
+  cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;margin:0 2px;}
+.tab-btn.active{color:var(--ink);border-bottom-color:var(--ink);font-weight:600;}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:1.25rem;}
+.bereich{display:none;}
+.bereich.active{display:block;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* TEXT */
+.text-topbar{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap;}
+.play-all{padding:8px 18px;border-radius:8px;border:none;background:var(--blue);
+  color:#fff;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;}
+.play-all:hover{background:#1A3F6A;}
+.absblock{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:1.25rem;margin-bottom:1rem;box-shadow:var(--shadow);}
+.abs-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;
+  margin-bottom:.875rem;padding-bottom:.5rem;border-bottom:1.5px solid var(--border);}
+.abs-name{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);}
+.abs-satz{font-size:.92rem;line-height:1.7;margin-bottom:.4rem;}
+.abs-satz:last-child{margin-bottom:0;}
+
+/* TABLES */
+.gt{width:100%;border-collapse:collapse;background:var(--white);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow);margin-bottom:1rem;}
+.gt th{background:var(--ink);color:#fff;padding:9px 10px;text-align:left;
+  font-size:.78rem;font-weight:600;white-space:nowrap;}
+.gt td{padding:9px 10px;border-bottom:1px solid var(--border);font-size:.83rem;vertical-align:top;line-height:1.5;}
+.gt tr:last-child td{border-bottom:none;}
+.gt tr:nth-child(even) td{background:var(--bg);}
+.gt tr:hover td{background:var(--blue-lt);}
+.gt .mw{font-weight:700;color:var(--ink);}
+.gt .sf{color:var(--ink2);}
+.gt .ex{color:var(--ink3);font-size:.78rem;font-style:italic;}
+.enett{display:inline-block;padding:1px 6px;border-radius:4px;font-weight:800;font-size:.72rem;}
+.enett.en{background:var(--green-lt);color:var(--green);}
+.enett.ett{background:var(--blue-lt);color:var(--blue);}
+
+/* VOK CARDS */
+.vok-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.875rem;}
+.vok-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;
+  padding:1rem;box-shadow:var(--shadow);}
+.vok-sv{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;}
+.vok-de{font-size:.88rem;color:var(--blue);font-weight:600;margin:3px 0;}
+.vok-typ{display:inline-block;font-size:.68rem;background:var(--gold-bg);color:var(--gold);
+  border-radius:4px;padding:1px 6px;font-weight:700;text-transform:uppercase;margin-bottom:4px;}
+.vok-def{font-size:.8rem;color:var(--ink3);line-height:1.5;margin-bottom:4px;}
+.vok-ex{font-size:.8rem;color:var(--ink2);font-style:italic;border-left:2px solid var(--border);padding-left:8px;}
+
+/* WORT TABLE */
+.wt{width:100%;border-collapse:collapse;background:var(--white);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow);}
+.wt th{background:var(--blue);color:#fff;padding:9px 12px;text-align:left;font-size:.82rem;font-weight:600;}
+.wt td{padding:8px 12px;border-bottom:1px solid var(--border);font-size:.88rem;vertical-align:middle;}
+.wt tr:nth-child(even) td{background:var(--bg);}
+.wt tr:hover td{background:var(--blue-lt);}
+.wc{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+
+/* AUDIO BUTTONS */
+.ab{display:inline-flex;align-items:center;padding:2px 5px;border-radius:5px;border:none;
+  background:transparent;cursor:pointer;font-size:.75rem;color:var(--ink3);}
+.ab:hover{background:var(--gold-bg);color:var(--gold);}
+.ab.sv{color:var(--blue);}
+.ab.sv:hover{background:var(--blue-lt);}
+.ab.de{color:var(--green);}
+.ab.de:hover{background:var(--green-lt);}
+.ext-lnk{font-size:.72rem;color:var(--ink3);text-decoration:none;padding:2px 5px;border-radius:5px;}
+.ext-lnk:hover{background:var(--gold-bg);color:var(--gold);}
+
+/* KARTEIKARTEN */
+.karte-wrap{display:flex;flex-direction:column;align-items:center;min-height:60vh;gap:1rem;justify-content:center;}
+.karte{background:var(--white);border:2px solid var(--border);border-radius:20px;
+  padding:3rem 2.5rem;text-align:center;width:100%;max-width:400px;
+  box-shadow:var(--shadow);cursor:pointer;min-height:180px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.karte:hover{border-color:var(--gold);}
+.k-front{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:600;}
+.k-back{font-size:1.1rem;color:var(--blue);font-weight:600;display:none;}
+.karte.flip .k-front{display:none;}
+.karte.flip .k-back{display:block;}
+.k-nav{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;justify-content:center;}
+.k-nav button{padding:8px 20px;border-radius:8px;border:1.5px solid var(--border);
+  background:var(--white);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;}
+.k-nav button:hover{background:var(--bg2);}
+.k-cnt{font-size:.85rem;color:var(--ink3);}
+
+/* VIEW TOGGLE + SEARCH */
+.vt-bar{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;}
+.vt-btn{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);
+  background:var(--white);font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;
+  cursor:pointer;color:var(--ink3);}
+.vt-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.search{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:.88rem;background:var(--white);color:var(--ink);flex:1;min-width:150px;}
+.search:focus{outline:none;border-color:var(--blue);}
+
+/* SEC LABEL */
+.sl{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--ink3);margin-bottom:.75rem;}
+
+/* EMPTY */
+.empty{text-align:center;padding:4rem 2rem;color:var(--ink3);}
+.empty h3{font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:.5rem;color:var(--ink2);}
+
+/* PLACEHOLDER */
+.ph{display:flex;align-items:center;justify-content:center;min-height:60vh;}
+.ph-box{text-align:center;padding:3rem;}
+.ph-box h3{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:.5rem;}
+.ph-box p{font-size:.88rem;color:var(--ink3);}
+
+/* ── SPIELE ── */
+.spiel-hdr{margin-bottom:1.25rem;}
+.spiel-title{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:.4rem;}
+.spiel-info{font-size:.85rem;color:var(--ink3);margin-bottom:.5rem;}
+.score-bar{display:flex;gap:1rem;font-size:.85rem;font-weight:600;color:var(--ink2);}
+.spiel-btn{padding:10px 22px;border-radius:10px;border:none;background:var(--blue);
+  color:#fff;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;
+  cursor:pointer;margin-top:.75rem;display:inline-block;}
+.spiel-btn:hover{opacity:.85;}
+.spiel-btn.outline{background:var(--white);color:var(--ink2);border:1.5px solid var(--border);margin-left:.5rem;}
+.spiel-btn.outline:hover{background:var(--bg2);}
+
+/* QUIZ + LÜCKENTEXT */
+.quiz-box{max-width:560px;}
+.quiz-frage{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:600;
+  margin-bottom:1.25rem;color:var(--ink);}
+.lueck-satz{font-size:1.1rem;line-height:1.8;margin-bottom:1.25rem;color:var(--ink);}
+.lueck-satz .lueck-blank{display:inline-block;min-width:100px;border-bottom:2.5px solid var(--blue);
+  color:var(--blue);font-weight:700;text-align:center;padding:0 8px;}
+.quiz-antworten{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem;}
+@media(max-width:480px){.quiz-antworten{grid-template-columns:1fr;}}
+.qa-btn{padding:12px 16px;border-radius:10px;border:2px solid var(--border);
+  background:var(--white);font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:500;
+  cursor:pointer;text-align:left;transition:all .15s;}
+.qa-btn:hover{border-color:var(--blue);background:var(--blue-lt);}
+.qa-btn.richtig{border-color:var(--green);background:var(--green-lt);color:var(--green);font-weight:700;}
+.qa-btn.falsch{border-color:var(--red);background:var(--red-lt);color:var(--red);}
+
+/* HANGMAN */
+.hm-box{display:flex;flex-direction:column;align-items:center;gap:1rem;}
+.hm-hint{font-size:.9rem;color:var(--ink3);font-style:italic;}
+.hm-wort{display:flex;gap:8px;font-family:'Playfair Display',serif;font-size:1.8rem;
+  letter-spacing:.1em;margin:.5rem 0;flex-wrap:wrap;justify-content:center;}
+.hm-buchstabe{display:inline-block;min-width:1.2em;text-align:center;
+  border-bottom:2.5px solid var(--ink);padding-bottom:2px;}
+.hm-buchstaben{display:flex;flex-wrap:wrap;gap:6px;max-width:500px;justify-content:center;}
+.hm-key{padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);
+  background:var(--white);font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;
+  cursor:pointer;min-width:36px;text-align:center;}
+.hm-key:hover{background:var(--blue-lt);}
+.hm-key:disabled{opacity:.35;cursor:default;background:var(--bg2);}
+.hm-key.treffer{background:var(--green-lt);border-color:var(--green);color:var(--green);}
+.hm-key.miss{background:var(--red-lt);border-color:var(--red);color:var(--red);}
+.hm-msg{font-size:1rem;font-weight:700;min-height:1.5rem;}
+
+/* MEMORY */
+.mem-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:.6rem;}
+.mem-card{height:70px;border-radius:10px;border:2px solid var(--border);background:var(--blue);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:.82rem;font-weight:600;color:transparent;transition:all .2s;position:relative;}
+.mem-card.offen{background:var(--white);color:var(--ink);border-color:var(--gold);}
+.mem-card.gefunden{background:var(--green-lt);color:var(--green);border-color:var(--green);cursor:default;}
+.mem-card .mem-txt{padding:4px;text-align:center;line-height:1.3;}
+
+/* DIKTAT */
+.dik-input{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-size:1rem;margin:1rem 0;background:var(--white);}
+.dik-input:focus{outline:none;border-color:var(--blue);}
+.dik-feedback{font-size:.9rem;min-height:1.5rem;font-weight:600;margin-bottom:.5rem;}
+.dik-feedback.ok{color:var(--green);}
+.dik-feedback.err{color:var(--red);}
+
+/* VERB TRAINER */
+.vt-frage{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:1rem;}
+.vt-felder{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem;}
+.vt-feld label{font-size:.78rem;font-weight:600;color:var(--ink3);display:block;margin-bottom:3px;}
+.vt-feld input{width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:.9rem;background:var(--white);}
+.vt-feld input:focus{outline:none;border-color:var(--blue);}
+.vt-feld input.ok{border-color:var(--green);background:var(--green-lt);}
+.vt-feld input.err{border-color:var(--red);background:var(--red-lt);}
+
+/* BIRKENBIHL */
+.birk-modi{display:flex;gap:.5rem;margin:.75rem 0;flex-wrap:wrap;}
+.birk-mod{padding:8px 18px;border-radius:20px;border:1.5px solid var(--border);
+  background:var(--white);font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:600;
+  cursor:pointer;color:var(--ink3);}
+.birk-mod.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.birk-satz{padding:1rem;border-radius:10px;border:1.5px solid var(--border);
+  background:var(--white);margin-bottom:.75rem;display:flex;align-items:flex-start;gap:.75rem;flex-wrap:wrap;}
+.birk-satz .bsv{font-size:.95rem;font-weight:600;flex:1;line-height:1.6;}
+.birk-satz .bde{font-size:.82rem;color:var(--ink3);font-style:italic;flex:1;line-height:1.6;}
+.birk-satz .baud{flex-shrink:0;}
+.birk-aktiv .bsv{cursor:pointer;}
+.birk-aktiv .bsv:hover{color:var(--blue);}
+.birk-mic{padding:6px 10px;border-radius:8px;border:1.5px solid var(--border);
+  background:var(--white);cursor:pointer;font-size:1rem;transition:all .15s;}
+.birk-mic:hover{background:var(--red-lt);border-color:var(--red);}
+.birk-mic.aufnahme{background:var(--red);color:#fff;border-color:var(--red);animation:pulse .8s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.6;}}
+.birk-fb{font-size:.82rem;font-weight:600;margin-top:4px;min-height:1.2rem;}
+.birk-fb.ok{color:var(--green);}
+.birk-fb.retry{color:var(--gold);}
+.birk-fb.err{color:var(--red);}
+
+@media(max-width:600px){
+  .start-title{font-size:1.8rem;}
+  .content{padding:.875rem;}
+  .vok-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- START -->
+<div id="sc-start" class="screen active">
+  <div class="start-flag">🇸🇪</div>
+  <h1 class="start-title">Katharinas Svenska</h1>
+  <p class="start-sub">Interaktives Lernprogramm · Birkenbihl-Methode · A1–A2</p>
+  <div class="src-cards">
+    <div class="src-card" id="btn-drive">
+      <div class="ic">☁️</div>
+      <h3>Google Drive</h3>
+      <p>Mit Google-Konto anmelden und Lernmaterial von Drive laden</p>
+    </div>
+    <div class="src-card" id="btn-local">
+      <div class="ic">📂</div>
+      <h3>Lokale Datei</h3>
+      <p>Excel-Datei direkt vom PC öffnen — kein Login nötig</p>
+    </div>
+  </div>
+  <p class="start-hint">Deine Daten bleiben privat und werden nie hochgeladen.</p>
+  <input type="file" id="file-in" accept=".xlsx,.xls" style="display:none"/>
+</div>
+
+<!-- LOADING -->
+<div id="sc-load" class="screen">
+  <div class="spinner"></div>
+  <div class="load-txt" id="load-txt">Lade…</div>
+</div>
+
+<!-- APP -->
+<div id="sc-app" class="screen">
+
+  <div class="app-hdr">
+    <div class="hdr-left">
+      <span class="hdr-flag">🇸🇪</span>
+      <div>
+        <div class="hdr-title">Katharinas Svenska</div>
+        <div class="hdr-sub" id="hdr-sub">—</div>
+      </div>
+    </div>
+    <button class="hdr-btn" id="btn-back">🏠 Zurück</button>
+  </div>
+
+  <div class="ber-nav">
+    <button class="ber-btn active" data-ber="lernen">📖 Lernen</button>
+    <button class="ber-btn" data-ber="grammatik">📝 Grammatik</button>
+    <button class="ber-btn" data-ber="spielen">🎮 Spielen</button>
+  </div>
+
+  <!-- LERNEN -->
+  <div class="bereich active" id="ber-lernen">
+    <div class="tab-nav">
+      <button class="tab-btn active" data-tab="text" data-ber="lernen">📖 Text</button>
+      <button class="tab-btn" data-tab="dekod" data-ber="lernen">🔵 Dekodierung</button>
+      <button class="tab-btn" data-tab="glossar" data-ber="lernen">📚 Glossar</button>
+      <button class="tab-btn" data-tab="svde" data-ber="lernen">🇸🇪→🇩🇪 SV→DE</button>
+      <button class="tab-btn" data-tab="desv" data-ber="lernen">🇩🇪→🇸🇪 DE→SV</button>
+    </div>
+    <div class="content">
+      <div class="tab-panel active" id="tp-text"><div class="empty"><h3>Lade eine Datei</h3></div></div>
+      <div class="tab-panel" id="tp-dekod"><div class="empty"><h3>Lade eine Datei</h3></div></div>
+      <div class="tab-panel" id="tp-glossar">
+        <div class="vt-bar">
+          <button class="vt-btn active" data-view="grid" data-tgt="glossar">🃏 Karten</button>
+          <button class="vt-btn" data-view="table" data-tgt="glossar">📋 Tabelle</button>
+          <input class="search" type="text" placeholder="Suchen…" id="s-glossar"/>
+        </div>
+        <div id="v-glossar-grid" class="vok-grid"></div>
+        <div id="v-glossar-table" style="display:none;overflow-x:auto;">
+          <table class="wt"><thead><tr><th>Schwedisch</th><th>Deutsch</th><th>Typ</th><th>Beispiel</th></tr></thead>
+          <tbody id="tb-glossar"></tbody></table>
+        </div>
+      </div>
+      <div class="tab-panel" id="tp-svde">
+        <div class="vt-bar">
+          <button class="vt-btn active" data-view="table" data-tgt="svde">📋 Tabelle</button>
+          <button class="vt-btn" data-view="karte" data-tgt="svde">🃏 Karteikarten</button>
+          <input class="search" type="text" placeholder="Suchen…" id="s-svde"/>
+        </div>
+        <div id="v-svde-table" style="overflow-x:auto;"><table class="wt"><thead><tr><th>🇸🇪 Schwedisch</th><th>🇩🇪 Deutsch</th></tr></thead><tbody id="tb-svde"></tbody></table></div>
+        <div id="v-svde-karte" class="karte-wrap" style="display:none;">
+          <div class="karte" id="k-svde"><div class="k-front" id="kf-svde">—</div><div class="k-back" id="kb-svde">—</div></div>
+          <p style="font-size:.78rem;color:var(--ink3);">Tippen zum Umdrehen</p>
+          <div class="k-nav">
+            <button id="kprev-svde">← Zurück</button>
+            <span class="k-cnt" id="kcnt-svde">1/1</span>
+            <button id="knext-svde">Weiter →</button>
+            <button class="ab sv" id="kaud-svde-sv">🔊🇸🇪</button>
+            <button class="ab de" id="kaud-svde-de">🔊🇩🇪</button>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tp-desv">
+        <div class="vt-bar">
+          <button class="vt-btn active" data-view="table" data-tgt="desv">📋 Tabelle</button>
+          <button class="vt-btn" data-view="karte" data-tgt="desv">🃏 Karteikarten</button>
+          <input class="search" type="text" placeholder="Suchen…" id="s-desv"/>
+        </div>
+        <div id="v-desv-table" style="overflow-x:auto;"><table class="wt"><thead><tr><th>🇩🇪 Deutsch</th><th>🇸🇪 Schwedisch</th></tr></thead><tbody id="tb-desv"></tbody></table></div>
+        <div id="v-desv-karte" class="karte-wrap" style="display:none;">
+          <div class="karte" id="k-desv"><div class="k-front" id="kf-desv">—</div><div class="k-back" id="kb-desv">—</div></div>
+          <p style="font-size:.78rem;color:var(--ink3);">Tippen zum Umdrehen</p>
+          <div class="k-nav">
+            <button id="kprev-desv">← Zurück</button>
+            <span class="k-cnt" id="kcnt-desv">1/1</span>
+            <button id="knext-desv">Weiter →</button>
+            <button class="ab de" id="kaud-desv-de">🔊🇩🇪</button>
+            <button class="ab sv" id="kaud-desv-sv">🔊🇸🇪</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRAMMATIK -->
+  <div class="bereich" id="ber-grammatik">
+    <div class="tab-nav">
+      <button class="tab-btn active" data-tab="verb" data-ber="grammatik">📝 Alla verb</button>
+      <button class="tab-btn" data-tab="oregelb" data-ber="grammatik">⭐ Oregelbundna</button>
+      <button class="tab-btn" data-tab="subst" data-ber="grammatik">🔵 Substantive</button>
+      <button class="tab-btn" data-tab="adj" data-ber="grammatik">🟡 Adjektive</button>
+    </div>
+    <div class="content">
+      <div class="tab-panel active" id="tp-verb"><div class="empty"><h3>Lade eine Datei</h3></div></div>
+      <div class="tab-panel" id="tp-oregelb"><div class="empty"><h3>Lade eine Datei</h3></div></div>
+      <div class="tab-panel" id="tp-subst"><div class="empty"><h3>Lade eine Datei</h3></div></div>
+      <div class="tab-panel" id="tp-adj"><div class="empty"><h3>Lade eine Datei</h3></div></div>
+    </div>
+  </div>
+
+  <!-- SPIELEN -->
+  <div class="bereich" id="ber-spielen">
+    <div class="tab-nav">
+      <button class="tab-btn active" data-tab="quiz" data-ber="spielen">❓ Quiz</button>
+      <button class="tab-btn" data-tab="hangman" data-ber="spielen">🎯 Hangman</button>
+      <button class="tab-btn" data-tab="memory" data-ber="spielen">🧠 Memory</button>
+      <button class="tab-btn" data-tab="luecke" data-ber="spielen">✏️ Lückentext</button>
+      <button class="tab-btn" data-tab="diktat" data-ber="spielen">🎧 Diktat</button>
+      <button class="tab-btn" data-tab="verbtr" data-ber="spielen">📝 Verb-Trainer</button>
+      <button class="tab-btn" data-tab="birken" data-ber="spielen">🎵 Birkenbihl</button>
+    </div>
+    <div class="content">
+
+      <!-- QUIZ -->
+      <div class="tab-panel active" id="tp-quiz">
+        <div class="spiel-hdr">
+          <h2 class="spiel-title">❓ Quiz</h2>
+          <div class="spiel-info" id="quiz-info">Wähle die richtige deutsche Übersetzung</div>
+          <div class="score-bar"><span id="quiz-score">0 richtig</span><span id="quiz-round">Frage 1/10</span></div>
+        </div>
+        <div class="quiz-box">
+          <div class="quiz-frage" id="quiz-frage">—</div>
+          <div class="quiz-antworten" id="quiz-antworten"></div>
+          <button class="spiel-btn" id="quiz-next" style="display:none;">Nächste Frage →</button>
+          <button class="spiel-btn outline" id="quiz-restart">🔄 Neu starten</button>
+        </div>
+      </div>
+
+      <!-- HANGMAN -->
+      <div class="tab-panel" id="tp-hangman">
+        <div class="spiel-hdr">
+          <h2 class="spiel-title">🎯 Hangman</h2>
+          <div class="score-bar"><span id="hm-fehler">0 Fehler</span><span id="hm-runde">Runde 1</span></div>
+        </div>
+        <div class="hm-box">
+          <div class="hm-hint" id="hm-hint">—</div>
+          <div class="hm-galgen" id="hm-galgen">
+            <svg viewBox="0 0 120 160" width="120" height="160">
+              <line x1="10" y1="155" x2="110" y2="155" stroke="var(--ink)" stroke-width="3"/>
+              <line x1="30" y1="155" x2="30" y2="10" stroke="var(--ink)" stroke-width="3"/>
+              <line x1="30" y1="10" x2="80" y2="10" stroke="var(--ink)" stroke-width="3"/>
+              <line x1="80" y1="10" x2="80" y2="30" stroke="var(--ink)" stroke-width="3"/>
+              <circle id="hm-kopf" cx="80" cy="42" r="12" stroke="var(--red)" stroke-width="2.5" fill="none" style="display:none"/>
+              <line id="hm-koerper" x1="80" y1="54" x2="80" y2="100" stroke="var(--red)" stroke-width="2.5" style="display:none"/>
+              <line id="hm-arm-l" x1="80" y1="65" x2="55" y2="85" stroke="var(--red)" stroke-width="2.5" style="display:none"/>
+              <line id="hm-arm-r" x1="80" y1="65" x2="105" y2="85" stroke="var(--red)" stroke-width="2.5" style="display:none"/>
+              <line id="hm-bein-l" x1="80" y1="100" x2="58" y2="130" stroke="var(--red)" stroke-width="2.5" style="display:none"/>
+              <line id="hm-bein-r" x1="80" y1="100" x2="102" y2="130" stroke="var(--red)" stroke-width="2.5" style="display:none"/>
+            </svg>
+          </div>
+          <div class="hm-wort" id="hm-wort"></div>
+          <div class="hm-buchstaben" id="hm-buchstaben"></div>
+          <div class="hm-msg" id="hm-msg"></div>
+          <button class="spiel-btn outline" id="hm-next">▶ Nächstes Wort</button>
+        </div>
+      </div>
+
+      <!-- MEMORY -->
+      <div class="tab-panel" id="tp-memory">
+        <div class="spiel-hdr">
+          <h2 class="spiel-title">🧠 Memory</h2>
+          <div class="score-bar"><span id="mem-paare">0 Paare</span><span id="mem-versuche">0 Versuche</span></div>
+        </div>
+        <div class="mem-grid" id="mem-grid"></div>
+        <button class="spiel-btn outline" id="mem-neu" style="margin-top:1rem;">🔄 Neues Spiel</button>
+      </div>
+
+      <!-- LÜCKENTEXT -->
+      <div class="tab-panel" id="tp-luecke">
+        <div class="spiel-hdr">
+          <h2 class="spiel-title">✏️ Lückentext</h2>
+          <div class="score-bar"><span id="lueck-score">0 richtig</span><span id="lueck-runde">1/10</span></div>
+        </div>
+        <div class="quiz-box">
+          <div class="lueck-satz" id="lueck-satz">—</div>
+          <div class="quiz-antworten" id="lueck-antworten"></div>
+          <button class="spiel-btn" id="lueck-next" style="display:none;">Nächste Aufgabe →</button>
+          <button class="spiel-btn outline" id="lueck-restart">🔄 Neu starten</button>
+        </div>
+      </div>
+
+      <!-- DIKTAT -->
+      <div class="tab-panel" id="tp-diktat">
+        <div class="spiel-hdr">
+          <h2 class="spiel-title">🎧 Diktat</h2>
+          <div class="spiel-info">Höre den Satz und tippe ihn auf Schwedisch</div>
+          <div class="score-bar"><span id="dik-score">0 richtig</span><span id="dik-runde">1/10</span></div>
+        </div>
+        <div class="quiz-box">
+          <button class="play-all" id="dik-play">🔊 Satz vorlesen</button>
+          <input class="dik-input" type="text" id="dik-input" placeholder="Schwedisch eintippen…"/>
+          <div class="dik-feedback" id="dik-feedback"></div>
+          <button class="spiel-btn" id="dik-check">✓ Prüfen</button>
+          <button class="spiel-btn" id="dik-next" style="display:none;">Nächster Satz →</button>
+          <button class="spiel-btn outline" id="dik-restart">🔄 Neu starten</button>
+        </div>
+      </div>
+
+      <!-- VERB-TRAINER -->
+      <div class="tab-panel" id="tp-verbtr">
+        <div class="spiel-hdr">
+          <h2 class="spiel-title">📝 Verb-Trainer</h2>
+          <div class="spiel-info">Trage alle Verbformen ein</div>
+          <div class="score-bar"><span id="vt-score">0 richtig</span><span id="vt-runde">1/10</span></div>
+        </div>
+        <div class="quiz-box">
+          <div class="vt-frage" id="vt-frage">—</div>
+          <div class="vt-felder" id="vt-felder"></div>
+          <div class="dik-feedback" id="vt-feedback"></div>
+          <button class="spiel-btn" id="vt-check">✓ Prüfen</button>
+          <button class="spiel-btn" id="vt-next" style="display:none;">Nächstes Verb →</button>
+          <button class="spiel-btn outline" id="vt-restart">🔄 Neu starten</button>
+        </div>
+      </div>
+
+      <!-- BIRKENBIHL -->
+      <div class="tab-panel" id="tp-birken">
+        <div class="spiel-hdr">
+          <h2 class="spiel-title">🎵 Birkenbihl-Methode</h2>
+          <div class="birk-modi">
+            <button class="birk-mod active" id="bm-passiv">🎧 Passiv hören</button>
+            <button class="birk-mod" id="bm-aktiv">📖 Aktiv hören</button>
+            <button class="birk-mod" id="bm-sprechen">🎤 Sprechen</button>
+          </div>
+        </div>
+        <div class="birk-box" id="birk-box"></div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- end sc-app -->
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════
+var CLIENT_ID = '816235046461-mina7vpib1bmev8avb8k6rdjejn7t3tc.apps.googleusercontent.com';
+var DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
+var FOLDER_NAME = 'Katharinas Svenska Lernapp';
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+var DATA = { texte:[], vokabeln:[], verben:[], substantive:[], adjektive:[] };
+var KARTE = {
+  svde: { data:[], idx:0 },
+  desv: { data:[], idx:0 }
+};
+var driveToken = null;
+var driveSource = false;
+
+// ══════════════════════════════════════════
+// SCREEN MANAGEMENT
+// ══════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s) {
+    s.classList.remove('active');
+  });
+  document.getElementById(id).classList.add('active');
+}
+
+// ══════════════════════════════════════════
+// AUDIO
+// ══════════════════════════════════════════
+var synth = window.speechSynthesis;
+
+function speak(text, lang) {
+  if (!text || !synth) return;
+  synth.cancel();
+  var u = new SpeechSynthesisUtterance(String(text));
+  u.lang = lang || 'sv-SE';
+  u.rate = 0.85;
+  synth.speak(u);
+}
+
+function speakSeq(texts, lang, delay) {
+  if (!texts || !texts.length || !synth) return;
+  synth.cancel();
+  var i = 0;
+  delay = delay || 800;
+  function next() {
+    if (i >= texts.length) return;
+    var u = new SpeechSynthesisUtterance(String(texts[i]));
+    u.lang = lang || 'sv-SE';
+    u.rate = 0.85;
+    u.onend = function() { i++; setTimeout(next, delay); };
+    synth.speak(u);
+  }
+  next();
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+document.querySelectorAll('.ber-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var ber = this.dataset.ber;
+    document.querySelectorAll('.ber-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.bereich').forEach(function(b) { b.classList.remove('active'); });
+    this.classList.add('active');
+    document.getElementById('ber-' + ber).classList.add('active');
+  });
+});
+
+document.querySelectorAll('.tab-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var tab = this.dataset.tab;
+    var ber = this.dataset.ber;
+    var berEl = document.getElementById('ber-' + ber);
+    berEl.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    berEl.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    this.classList.add('active');
+    var tp = document.getElementById('tp-' + tab);
+    if (tp) tp.classList.add('active');
+  });
+});
+
+// View Toggle
+document.querySelectorAll('.vt-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var view = this.dataset.view;
+    var tgt = this.dataset.tgt;
+    var bar = this.closest('.vt-bar');
+    bar.querySelectorAll('.vt-btn').forEach(function(b) { b.classList.remove('active'); });
+    this.classList.add('active');
+    // Zeige/Verstecke Views
+    var grid = document.getElementById('v-' + tgt + '-grid');
+    var table = document.getElementById('v-' + tgt + '-table');
+    var karte = document.getElementById('v-' + tgt + '-karte');
+    if (grid) grid.style.display = (view === 'grid') ? 'grid' : 'none';
+    if (table) table.style.display = (view === 'table') ? 'block' : 'none';
+    if (karte) karte.style.display = (view === 'karte') ? 'flex' : 'none';
+  });
+});
+
+// Search
+document.getElementById('s-glossar').addEventListener('input', function() {
+  var q = this.value.toLowerCase();
+  document.querySelectorAll('#v-glossar-grid .vok-card').forEach(function(c) {
+    var match = c.dataset.q && c.dataset.q.includes(q);
+    c.style.display = match ? '' : 'none';
+  });
+  document.querySelectorAll('#tb-glossar tr').forEach(function(r) {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+document.getElementById('s-svde').addEventListener('input', function() {
+  var q = this.value.toLowerCase();
+  document.querySelectorAll('#tb-svde tr').forEach(function(r) {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+document.getElementById('s-desv').addEventListener('input', function() {
+  var q = this.value.toLowerCase();
+  document.querySelectorAll('#tb-desv tr').forEach(function(r) {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+
+// Back Button
+document.getElementById('btn-back').addEventListener('click', function() {
+  showScreen('sc-start');
+});
+
+// ══════════════════════════════════════════
+// KARTEIKARTEN
+// ══════════════════════════════════════════
+function initKarte(mode) {
+  var k = KARTE[mode];
+  updateKarte(mode);
+  document.getElementById('k-' + mode).onclick = function() {
+    this.classList.toggle('flip');
+  };
+  document.getElementById('kprev-' + mode).onclick = function() {
+    k.idx = (k.idx - 1 + k.data.length) % k.data.length;
+    document.getElementById('k-' + mode).classList.remove('flip');
+    updateKarte(mode);
+  };
+  document.getElementById('knext-' + mode).onclick = function() {
+    k.idx = (k.idx + 1) % k.data.length;
+    document.getElementById('k-' + mode).classList.remove('flip');
+    updateKarte(mode);
+  };
+  if (mode === 'svde') {
+    document.getElementById('kaud-svde-sv').onclick = function() {
+      speak(document.getElementById('kf-svde').textContent, 'sv-SE');
+    };
+    document.getElementById('kaud-svde-de').onclick = function() {
+      speak(document.getElementById('kb-svde').textContent, 'de-DE');
+    };
+  } else {
+    document.getElementById('kaud-desv-de').onclick = function() {
+      speak(document.getElementById('kf-desv').textContent, 'de-DE');
+    };
+    document.getElementById('kaud-desv-sv').onclick = function() {
+      speak(document.getElementById('kb-desv').textContent, 'sv-SE');
+    };
+  }
+}
+
+function updateKarte(mode) {
+  var k = KARTE[mode];
+  if (!k.data.length) return;
+  var item = k.data[k.idx];
+  document.getElementById('kf-' + mode).textContent = item.front;
+  document.getElementById('kb-' + mode).textContent = item.back;
+  document.getElementById('kcnt-' + mode).textContent = (k.idx + 1) + ' / ' + k.data.length;
+}
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function findKey(row, candidates) {
+  var keys = Object.keys(row);
+  for (var i = 0; i < candidates.length; i++) {
+    var found = keys.find(function(k) { return k.includes(candidates[i]); });
+    if (found) return found;
+  }
+  return keys[0];
+}
+
+// ══════════════════════════════════════════
+// EXCEL PARSEN
+// ══════════════════════════════════════════
+function parseSheet(wb, nameHint) {
+  var sheet = null;
+  wb.SheetNames.forEach(function(n) {
+    if (n.toLowerCase().includes(nameHint.toLowerCase())) sheet = wb.Sheets[n];
+  });
+  if (!sheet) return [];
+
+  // Finde Header-Zeile: erste Zeile mit mehr als 1 nicht-leerer Zelle
+  var range = XLSX.utils.decode_range(sheet['!ref'] || 'A1:Z1');
+  var headerRow = range.s.r;
+  for (var r = range.s.r; r <= Math.min(range.e.r, 10); r++) {
+    var count = 0;
+    for (var c = range.s.c; c <= range.e.c; c++) {
+      var cell = sheet[XLSX.utils.encode_cell({r:r, c:c})];
+      if (cell && cell.v) count++;
+    }
+    if (count > 1) { headerRow = r; break; }
+  }
+
+  var newRange = XLSX.utils.encode_range({
+    s: {r: headerRow, c: range.s.c},
+    e: range.e
+  });
+
+  return XLSX.utils.sheet_to_json(sheet, {defval:'', range: newRange, raw:false});
+}
+
+function loadWorkbook(wb) {
+  // Texte
+  DATA.texte = parseSheet(wb, 'Text').filter(function(r) {
+    return r['Schwedisch (Original)'] || r['Schwedisch'];
+  });
+
+  // Vokabeln
+  DATA.vokabeln = parseSheet(wb, 'Vokabel').filter(function(r) {
+    return (r['Schwedisch'] || r['SV']) && (r['Deutsch'] || r['DE']);
+  });
+
+  // Verben
+  DATA.verben = parseSheet(wb, 'Verb').filter(function(r) {
+    var keys = Object.keys(r);
+    return keys.some(function(k) { return k.includes('Grundform') || k.includes('Infinitiv'); }) &&
+           keys.some(function(k) { return r[k]; });
+  });
+
+  // Substantive
+  DATA.substantive = parseSheet(wb, 'Subst').filter(function(r) {
+    return r['Deutsch'] && (r['en/ett'] || r['Grundform\n(obestämd)'] || r['Grundform']);
+  });
+
+  // Adjektive
+  DATA.adjektive = parseSheet(wb, 'Adj').filter(function(r) {
+    var keys = Object.keys(r);
+    return keys.some(function(k) { return k.includes('Positiv') && r[k]; });
+  });
+
+  console.log('Geladen:', {
+    texte: DATA.texte.length,
+    vokabeln: DATA.vokabeln.length,
+    verben: DATA.verben.length,
+    substantive: DATA.substantive.length,
+    adjektive: DATA.adjektive.length
+  });
+}
+
+// ══════════════════════════════════════════
+// BUILD UI
+// ══════════════════════════════════════════
+function buildAll() {
+  buildText();
+  buildDekod();
+  buildGlossar();
+  buildSvDe();
+  buildDeSv();
+  buildVerben();
+  buildSubstantive();
+  buildAdjektive();
+  initKarte('svde');
+  initKarte('desv');
+}
+
+function buildText() {
+  var rows = DATA.texte;
+  if (!rows.length) return;
+  var svK = findKey(rows[0], ['Schwedisch']);
+  var secK = findKey(rows[0], ['Abschnitt', 'avsnitt']);
+
+  // Gruppiere nach Abschnitt
+  var groups = {};
+  var order = [];
+  rows.forEach(function(r) {
+    var sec = r[secK] || 'Text';
+    var sv = r[svK] || '';
+    if (!sv) return;
+    if (!groups[sec]) { groups[sec] = []; order.push(sec); }
+    groups[sec].push(sv);
+  });
+
+  var allSv = rows.map(function(r) { return r[svK]; }).filter(Boolean);
+  var html = '<div class="text-topbar">' +
+    '<button class="play-all" id="btn-play-all">🔊 Ganzen Text vorlesen</button>' +
+    '<span style="font-size:.82rem;color:var(--ink3);">' + allSv.length + ' Sätze · ' + order.length + ' Abschnitte</span>' +
+    '</div>';
+
+  order.forEach(function(sec, si) {
+    var saetze = groups[sec];
+    html += '<div class="absblock">' +
+      '<div class="abs-hdr">' +
+      '<span class="abs-name">' + esc(sec) + '</span>' +
+      '<button class="ab sv" id="btn-abs-' + si + '">🔊 Abschnitt</button>' +
+      '</div>' +
+      saetze.map(function(s) { return '<div class="abs-satz">' + esc(s) + '</div>'; }).join('') +
+      '</div>';
+  });
+
+  document.getElementById('tp-text').innerHTML = html;
+
+  // Event Listeners nach innerHTML
+  document.getElementById('btn-play-all').addEventListener('click', function() {
+    speakSeq(allSv, 'sv-SE', 400);
+  });
+  order.forEach(function(sec, si) {
+    var btn = document.getElementById('btn-abs-' + si);
+    if (btn) {
+      var saetze = groups[sec];
+      btn.addEventListener('click', function() {
+        speakSeq(saetze, 'sv-SE', 400);
+      });
+    }
+  });
+}
+
+function buildDekod() {
+  var rows = DATA.texte;
+  if (!rows.length) return;
+  var svK = findKey(rows[0], ['Schwedisch']);
+  var deK = findKey(rows[0], ['Dekodieru', 'Deutsch']);
+
+  var html = '<div style="overflow-x:auto;"><table class="gt">' +
+    '<thead><tr><th>#</th><th>Schwedisch</th><th>Deutsch (wortgetreu)</th></tr></thead><tbody>';
+
+  rows.forEach(function(r, i) {
+    var sv = r[svK] || '';
+    var de = r[deK] || '';
+    if (!sv) return;
+    html += '<tr><td style="color:var(--ink3);font-size:.78rem;">' + (i+1) + '</td>' +
+      '<td><span style="font-weight:600;">' + esc(sv) + '</span></td>' +
+      '<td style="color:var(--ink3);font-style:italic;">' + esc(de) + '</td></tr>';
+  });
+
+  html += '</tbody></table></div>';
+  document.getElementById('tp-dekod').innerHTML = html;
+}
+
+function buildGlossar() {
+  var rows = DATA.vokabeln.slice().sort(function(a,b) {
+    return (a['Schwedisch']||'').localeCompare(b['Schwedisch']||'', 'sv');
+  });
+  if (!rows.length) return;
+
+  var svK = 'Schwedisch', deK = 'Deutsch', typK = 'Typ';
+  var defK = findKey(rows[0], ['Definition']);
+  var exK = findKey(rows[0], ['Beispiel']);
+
+  // Grid
+  var gridHtml = rows.map(function(r) {
+    var sv = r[svK] || '';
+    var de = r[deK] || '';
+    return '<div class="vok-card" data-q="' + esc((sv+' '+de).toLowerCase()) + '">' +
+      '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">' +
+      '<span class="vok-sv">' + esc(sv) + '</span>' +
+      '<button class="ab sv" data-sv="' + esc(sv) + '">🔊🇸🇪</button>' +
+      '<a class="ext-lnk" href="https://www.svenska.se/?q=' + encodeURIComponent(sv) + '" target="_blank">📖</a>' +
+      '</div>' +
+      '<div class="vok-de">' + esc(de) + '</div>' +
+      '<span class="vok-typ">' + esc(r[typK]||'') + '</span>' +
+      '<div class="vok-def">' + esc(r[defK]||'') + '</div>' +
+      (r[exK] ? '<div class="vok-ex">' + esc(r[exK]) + '</div>' : '') +
+      '</div>';
+  }).join('');
+  document.getElementById('v-glossar-grid').innerHTML = gridHtml;
+
+  // Tabelle
+  var tblHtml = rows.map(function(r) {
+    var sv = r[svK] || '';
+    var de = r[deK] || '';
+    return '<tr>' +
+      '<td><strong>' + esc(sv) + '</strong> <button class="ab sv" data-sv="' + esc(sv) + '">🔊🇸🇪</button>' +
+      ' <a class="ext-lnk" href="https://www.svenska.se/?q=' + encodeURIComponent(sv) + '" target="_blank">📖</a></td>' +
+      '<td>' + esc(de) + '</td>' +
+      '<td><span class="vok-typ">' + esc(r[typK]||'') + '</span></td>' +
+      '<td style="font-size:.8rem;color:var(--ink3);">' + esc(r[exK]||'') + '</td>' +
+      '</tr>';
+  }).join('');
+  document.getElementById('tb-glossar').innerHTML = tblHtml;
+
+  // Audio-Delegation
+  document.getElementById('v-glossar-grid').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-sv]');
+    if (btn) speak(btn.dataset.sv, 'sv-SE');
+  });
+  document.getElementById('tb-glossar').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-sv]');
+    if (btn) speak(btn.dataset.sv, 'sv-SE');
+  });
+}
+
+function buildSvDe() {
+  var rows = DATA.vokabeln.slice().sort(function(a,b) {
+    return (a['Schwedisch']||'').localeCompare(b['Schwedisch']||'', 'sv');
+  });
+  if (!rows.length) return;
+
+  var html = rows.map(function(r) {
+    var sv = r['Schwedisch'] || '';
+    var de = r['Deutsch'] || '';
+    return '<tr>' +
+      '<td><div class="wc"><strong>' + esc(sv) + '</strong>' +
+      '<button class="ab sv" data-sv="' + esc(sv) + '">🔊🇸🇪</button></div></td>' +
+      '<td><div class="wc">' + esc(de) +
+      '<button class="ab de" data-de="' + esc(de) + '">🔊🇩🇪</button></div></td>' +
+      '</tr>';
+  }).join('');
+  document.getElementById('tb-svde').innerHTML = html;
+
+  document.getElementById('tb-svde').addEventListener('click', function(e) {
+    var bsv = e.target.closest('[data-sv]');
+    var bde = e.target.closest('[data-de]');
+    if (bsv) speak(bsv.dataset.sv, 'sv-SE');
+    if (bde) speak(bde.dataset.de, 'de-DE');
+  });
+
+  KARTE.svde.data = shuffle(rows.map(function(r) {
+    return {front: r['Schwedisch']||'', back: r['Deutsch']||''};
+  }));
+}
+
+function buildDeSv() {
+  var rows = DATA.vokabeln.slice().sort(function(a,b) {
+    return (a['Deutsch']||'').localeCompare(b['Deutsch']||'', 'de');
+  });
+  if (!rows.length) return;
+
+  var html = rows.map(function(r) {
+    var sv = r['Schwedisch'] || '';
+    var de = r['Deutsch'] || '';
+    return '<tr>' +
+      '<td><div class="wc"><strong>' + esc(de) + '</strong>' +
+      '<button class="ab de" data-de="' + esc(de) + '">🔊🇩🇪</button></div></td>' +
+      '<td><div class="wc">' + esc(sv) +
+      '<button class="ab sv" data-sv="' + esc(sv) + '">🔊🇸🇪</button></div></td>' +
+      '</tr>';
+  }).join('');
+  document.getElementById('tb-desv').innerHTML = html;
+
+  document.getElementById('tb-desv').addEventListener('click', function(e) {
+    var bsv = e.target.closest('[data-sv]');
+    var bde = e.target.closest('[data-de]');
+    if (bsv) speak(bsv.dataset.sv, 'sv-SE');
+    if (bde) speak(bde.dataset.de, 'de-DE');
+  });
+
+  KARTE.desv.data = shuffle(rows.map(function(r) {
+    return {front: r['Deutsch']||'', back: r['Schwedisch']||''};
+  }));
+}
+
+function buildVerben() {
+  var rows = DATA.verben;
+  if (!rows.length) { document.getElementById('tp-verb').innerHTML = '<div class="empty"><h3>Keine Verben gefunden</h3></div>'; return; }
+
+  var k = Object.keys(rows[0]);
+  var deK = k.find(function(x){return x==='Deutsch';}) || k[0];
+  var grK = k.find(function(x){return x.includes('Grundform');}) || k[1];
+  var prK = k.find(function(x){return x==='Präsens';}) || k[2];
+  var ptK = k.find(function(x){return x==='Präteritum';}) || k[3];
+  var suK = k.find(function(x){return x==='Supinum';}) || k[4];
+  var imK = k.find(function(x){return x==='Imperativ';}) || k[5];
+  var exK = k.find(function(x){return x.includes('Beispiel');}) || k[6];
+  var stK = k.find(function(x){return x.includes('Stark');}) || k[7];
+
+  var sorted = rows.slice().sort(function(a,b){
+    return (a[grK]||'').localeCompare(b[grK]||'','sv');
+  });
+
+  function makeTable(arr) {
+    var h = '<div style="overflow-x:auto;"><table class="gt">' +
+      '<thead><tr><th>Deutsch</th><th>Grundform</th><th>Präsens</th>' +
+      '<th>Präteritum</th><th>Supinum</th><th>Imperativ</th><th>Beispielsätze</th><th>🔊</th>' +
+      '</tr></thead><tbody>';
+
+    arr.forEach(function(r, ri) {
+      var gr = r[grK]||'', pr = r[prK]||'', pt = r[ptK]||'', su = r[suK]||'';
+      var im = r[imK]||'', ex = r[exK]||'', st = (r[stK]||'').includes('JA');
+      var forms = [pr,pt,su].filter(Boolean);
+      var exArr = ex.split('/').map(function(s){return s.trim();}).filter(Boolean);
+      h += '<tr>' +
+        '<td class="sf">' + esc(r[deK]||'') + (st?' <span style="color:var(--gold);font-size:.7rem;">★</span>':'') + '</td>' +
+        '<td class="mw" data-gr="' + esc(gr) + '">' + esc(gr) + ' <button class="ab sv" data-idx="gr-' + ri + '">🔊</button></td>' +
+        '<td>' + esc(pr) + '</td>' +
+        '<td>' + esc(pt) + '</td>' +
+        '<td>' + esc(su) + '</td>' +
+        '<td>' + (im&&im!=='—'?esc(im):'<span style="color:var(--ink3)">—</span>') + '</td>' +
+        '<td class="ex">' + esc(ex).replace(/\//g,'<br/>') + '</td>' +
+        '<td style="white-space:nowrap;">' +
+        '<button class="ab sv" data-forms="' + esc(JSON.stringify(forms)) + '" data-type="seq">🔊¹</button>' +
+        '<button class="ab sv" data-forms="' + esc(JSON.stringify(exArr)) + '" data-type="seq-slow">🔊²</button>' +
+        '</td></tr>';
+    });
+    h += '</tbody></table></div>';
+    return h;
+  }
+
+  var verbHtml = makeTable(sorted);
+  document.getElementById('tp-verb').innerHTML = verbHtml;
+
+  var oregelbArr = sorted.filter(function(r){return (r[stK]||'').includes('JA');});
+  document.getElementById('tp-oregelb').innerHTML = makeTable(oregelbArr);
+
+  // Audio-Delegation für beide Tabellen
+  ['tp-verb','tp-oregelb'].forEach(function(id) {
+    document.getElementById(id).addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-type]');
+      if (btn) {
+        var forms = JSON.parse(btn.dataset.forms || '[]');
+        var delay = btn.dataset.type === 'seq-slow' ? 1200 : 700;
+        speakSeq(forms, 'sv-SE', delay);
+        return;
+      }
+      var gbtn = e.target.closest('.ab[data-idx]');
+      if (gbtn) {
+        var td = gbtn.closest('td');
+        speak(td.dataset.gr || gbtn.previousSibling && gbtn.previousSibling.textContent, 'sv-SE');
+      }
+    });
+  });
+}
+
+function buildSubstantive() {
+  var rows = DATA.substantive;
+  if (!rows.length) { document.getElementById('tp-subst').innerHTML = '<div class="empty"><h3>Keine Substantive gefunden</h3></div>'; return; }
+
+  var k = Object.keys(rows[0]);
+  var deK = k.find(function(x){return x==='Deutsch';}) || k[0];
+  var enK = k.find(function(x){return x.includes('en/ett');}) || k[1];
+  var grK = k.find(function(x){return x.includes('Grundform');}) || k[2];
+  var beK = k.find(function(x){return x.includes('Bestimmt');}) || k[3];
+  var p1K = k.find(function(x){return x.includes('obestämd')||x.includes('Plural')&&x.includes('ob');}) || k[4];
+  var p2K = k.find(function(x){return x.includes('bestämd')&&x.includes('Plural');}) || k[5];
+  var exK = k.find(function(x){return x.includes('Beispiel');}) || k[6];
+
+  var sorted = rows.slice().sort(function(a,b){
+    return (a[grK]||'').localeCompare(b[grK]||'','sv');
+  });
+
+  var h = '<div style="overflow-x:auto;"><table class="gt">' +
+    '<thead><tr><th>Deutsch</th><th>en/ett</th><th>Grundform</th>' +
+    '<th>Bestimmt Sg.</th><th>Plural ob.</th><th>Plural best.</th>' +
+    '<th>Beispielsätze</th><th>🔊</th></tr></thead><tbody>';
+
+  sorted.forEach(function(r, ri) {
+    var en = (r[enK]||'').trim();
+    var gr = r[grK]||'', be = r[beK]||'', p1 = r[p1K]||'', p2 = r[p2K]||'', ex = r[exK]||'';
+    var forms = [gr,be,p1,p2].filter(Boolean);
+    var exArr = ex.split('/').map(function(s){return s.trim();}).filter(Boolean);
+    h += '<tr>' +
+      '<td class="sf">' + esc(r[deK]||'') + '</td>' +
+      '<td><span class="enett ' + esc(en) + '">' + esc(en) + '</span></td>' +
+      '<td class="mw">' + esc(gr) + '</td>' +
+      '<td>' + esc(be) + '</td>' +
+      '<td>' + esc(p1) + '</td>' +
+      '<td>' + esc(p2) + '</td>' +
+      '<td class="ex">' + esc(ex).replace(/\//g,'<br/>') + '</td>' +
+      '<td style="white-space:nowrap;">' +
+      '<button class="ab sv" data-forms="' + esc(JSON.stringify(forms)) + '" data-type="seq">🔊¹</button>' +
+      '<button class="ab sv" data-forms="' + esc(JSON.stringify(exArr)) + '" data-type="seq-slow">🔊²</button>' +
+      '</td></tr>';
+  });
+
+  h += '</tbody></table></div>';
+  document.getElementById('tp-subst').innerHTML = h;
+
+  document.getElementById('tp-subst').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-type]');
+    if (btn) {
+      var forms = JSON.parse(btn.dataset.forms || '[]');
+      var delay = btn.dataset.type === 'seq-slow' ? 1200 : 700;
+      speakSeq(forms, 'sv-SE', delay);
+    }
+  });
+}
+
+function buildAdjektive() {
+  var rows = DATA.adjektive;
+  if (!rows.length) { document.getElementById('tp-adj').innerHTML = '<div class="empty"><h3>Keine Adjektive gefunden</h3></div>'; return; }
+
+  var k = Object.keys(rows[0]);
+  var deK = k.find(function(x){return x.includes('Deutsch');}) || k[0];
+  var p1K = k.find(function(x){return x.includes('Positiv')&&x.includes('en');}) || k[1];
+  var p2K = k.find(function(x){return x.includes('Positiv')&&x.includes('ett');}) || k[2];
+  var p3K = k.find(function(x){return x.includes('Positiv')&&(x.includes('Pl')||x.includes('Best'));}) || k[3];
+  var koK = k.find(function(x){return x.includes('Komparativ');}) || k[5];
+  var s1K = k.find(function(x){return x.includes('prädik');}) || k[6];
+  var s2K = k.find(function(x){return x.includes('attrib');}) || k[7];
+  var exK = k.find(function(x){return x.includes('Beispiel');}) || k[9];
+
+  var sorted = rows.slice().sort(function(a,b){
+    return (a[p1K]||'').localeCompare(b[p1K]||'','sv');
+  });
+
+  var h = '<div style="overflow-x:auto;"><table class="gt">' +
+    '<thead><tr>' +
+    '<th>Deutsch</th><th>Pos. en</th><th>Pos. ett</th><th>Pos. Pl./Best.</th><th>🔊¹</th>' +
+    '<th>Komparativ</th><th>Sup. prädik.</th><th>Sup. attrib.</th><th>🔊²</th>' +
+    '<th>Beispielsätze</th><th>🔊³</th>' +
+    '</tr></thead><tbody>';
+
+  sorted.forEach(function(r) {
+    var p1=r[p1K]||'', p2=r[p2K]||'', p3=r[p3K]||'';
+    var ko=r[koK]||'', s1=r[s1K]||'', s2=r[s2K]||'', ex=r[exK]||'';
+    var posArr = [p1,p2,p3].filter(Boolean);
+    var stArr = [ko,s1,s2].filter(function(x){return x&&x!=='—';});
+    var exArr = ex.split('/').map(function(s){return s.trim();}).filter(Boolean);
+    h += '<tr>' +
+      '<td class="sf">' + esc(r[deK]||'') + '</td>' +
+      '<td class="mw">' + esc(p1) + '</td>' +
+      '<td>' + esc(p2) + '</td>' +
+      '<td>' + esc(p3) + '</td>' +
+      '<td><button class="ab sv" data-forms="' + esc(JSON.stringify(posArr)) + '" data-type="seq">🔊</button></td>' +
+      '<td>' + (ko&&ko!=='—'?esc(ko):'<span style="color:var(--ink3)">—</span>') + '</td>' +
+      '<td>' + (s1&&s1!=='—'?esc(s1):'<span style="color:var(--ink3)">—</span>') + '</td>' +
+      '<td>' + (s2&&s2!=='—'?esc(s2):'<span style="color:var(--ink3)">—</span>') + '</td>' +
+      '<td><button class="ab sv" data-forms="' + esc(JSON.stringify(stArr)) + '" data-type="seq">🔊</button></td>' +
+      '<td class="ex">' + esc(ex).replace(/\//g,'<br/>') + '</td>' +
+      '<td><button class="ab sv" data-forms="' + esc(JSON.stringify(exArr)) + '" data-type="seq-slow">🔊</button></td>' +
+      '</tr>';
+  });
+
+  h += '</tbody></table></div>';
+  document.getElementById('tp-adj').innerHTML = h;
+
+  document.getElementById('tp-adj').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-type]');
+    if (btn) {
+      var forms = JSON.parse(btn.dataset.forms || '[]');
+      var delay = btn.dataset.type === 'seq-slow' ? 1200 : 700;
+      speakSeq(forms, 'sv-SE', delay);
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+// FILE LOADING
+// ══════════════════════════════════════════
+function processFile(arrayBuffer, filename) {
+  try {
+    var wb = XLSX.read(arrayBuffer, {type:'array'});
+    loadWorkbook(wb);
+    buildAll();
+    document.getElementById('hdr-sub').textContent = filename;
+    showScreen('sc-app');
+  } catch(err) {
+    console.error(err);
+    alert('Fehler beim Lesen: ' + err.message);
+    showScreen('sc-start');
+  }
+}
+
+// Lokale Datei
+document.getElementById('btn-local').addEventListener('click', function() {
+  document.getElementById('file-in').click();
+});
+
+document.getElementById('file-in').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('load-txt').textContent = 'Lade ' + file.name + '…';
+  showScreen('sc-load');
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    processFile(ev.target.result, file.name);
+  };
+  reader.onerror = function() {
+    alert('Fehler beim Lesen der Datei.');
+    showScreen('sc-start');
+  };
+  reader.readAsArrayBuffer(file);
+  // Reset damit dieselbe Datei nochmal gewählt werden kann
+  this.value = '';
+});
+
+// Google Drive
+document.getElementById('btn-drive').addEventListener('click', function() {
+  document.getElementById('load-txt').textContent = 'Lade Google Script…';
+  showScreen('sc-load');
+  loadGoogleScript();
+});
+
+function loadGoogleScript() {
+  if (window.google && window.google.accounts) {
+    startDriveLogin();
+    return;
+  }
+  var s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.onload = function() { setTimeout(startDriveLogin, 300); };
+  s.onerror = function() {
+    alert('Google Script konnte nicht geladen werden.\nBitte Chrome verwenden und Internetverbindung prüfen.');
+    showScreen('sc-start');
+  };
+  document.head.appendChild(s);
+}
+
+function startDriveLogin() {
+  document.getElementById('load-txt').textContent = 'Google Login…';
+  try {
+    var client = window.google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: DRIVE_SCOPE,
+      callback: function(resp) {
+        if (resp.error) {
+          alert('Login fehlgeschlagen: ' + resp.error);
+          showScreen('sc-start');
+          return;
+        }
+        driveToken = resp.access_token;
+        loadFromDrive(null);
+      }
+    });
+    client.requestAccessToken();
+  } catch(err) {
+    alert('OAuth Fehler: ' + err.message);
+    showScreen('sc-start');
+  }
+}
+
+function driveGet(path) {
+  return fetch('https://www.googleapis.com/drive/v3/' + path, {
+    headers: {Authorization: 'Bearer ' + driveToken}
+  }).then(function(r) {
+    if (!r.ok) throw new Error('Drive API ' + r.status);
+    return r;
+  });
+}
+
+function loadFromDrive(filename) {
+  // Wenn filename angegeben → direkt laden, sonst erst Auswahl zeigen
+  document.getElementById('load-txt').textContent = 'Suche Ordner…';
+
+  driveGet("files?q=name='" + FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder'&fields=files(id)")
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (!data.files || !data.files.length) throw new Error('Ordner "' + FOLDER_NAME + '" nicht gefunden.');
+    var folderId = data.files[0].id;
+    if (filename) {
+      // Direkt eine bestimmte Datei laden
+      return driveGet("files?q=name='" + filename + "' and '" + folderId + "' in parents&fields=files(id,name)")
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.files || !data.files.length) throw new Error('"' + filename + '" nicht gefunden.');
+          return {mode:'load', fileId: data.files[0].id, fileName: filename};
+        });
+    } else {
+      // Alle xlsx-Dateien im Ordner suchen
+      return driveGet("files?q='" + folderId + "' in parents and (name contains '.xlsx' or name contains '.xls')&fields=files(id,name,modifiedTime)&orderBy=name")
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          return {mode:'select', files: data.files || [], folderId: folderId};
+        });
+    }
+  })
+  .then(function(result) {
+    if (result.mode === 'select') {
+      // Auswahl anzeigen
+      showDriveSelect(result.files);
+    } else {
+      // Datei direkt laden
+      document.getElementById('load-txt').textContent = 'Lade ' + result.fileName + '…';
+      return driveGet('files/' + result.fileId + '?alt=media')
+        .then(function(r) { return r.arrayBuffer(); })
+        .then(function(buf) { processFile(buf, result.fileName); });
+    }
+  })
+  .catch(function(err) {
+    alert('Drive Fehler: ' + err.message);
+    showScreen('sc-start');
+  });
+}
+
+function showDriveSelect(files) {
+  // Zeige Datei-Auswahl auf dem Start-Screen
+  showScreen('sc-start');
+
+  // Entferne alten Auswahl-Bereich falls vorhanden
+  var old = document.getElementById('drive-select');
+  if (old) old.parentNode.removeChild(old);
+
+  var div = document.createElement('div');
+  div.id = 'drive-select';
+  div.style.cssText = 'margin-top:1.5rem;max-width:440px;width:100%;';
+
+  if (!files.length) {
+    div.innerHTML = '<div style="background:var(--red-lt);border:1.5px solid var(--red);border-radius:12px;padding:1rem;text-align:center;font-size:.85rem;color:var(--red);">' +
+      '❌ Keine xlsx-Dateien im Ordner "' + FOLDER_NAME + '" gefunden.<br/>' +
+      '<span style="font-size:.78rem;color:var(--ink3);">Lade zuerst eine Excel-Datei auf Drive hoch.</span></div>';
+  } else {
+    var html = '<div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:.75rem;">☁️ Thema wählen — Google Drive</div>';
+    var container = document.createElement('div');
+    container.style.cssText = 'display:flex;flex-direction:column;gap:.5rem;';
+    files.forEach(function(f) {
+      // Datum formatieren
+      var date = f.modifiedTime ? new Date(f.modifiedTime).toLocaleDateString('de-DE') : '';
+      var btn = document.createElement('button');
+      btn.className = 'drive-file-btn';
+      btn.dataset.fid = f.id;
+      btn.dataset.fname = f.name;
+      btn.style.cssText = 'display:flex;align-items:center;gap:.75rem;padding:.875rem 1rem;background:var(--white);border:2px solid var(--border);border-radius:12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s;box-shadow:0 2px 8px rgba(28,24,16,0.06);width:100%;';
+      btn.innerHTML = '<span style="font-size:1.5rem;">📊</span><div style="flex:1;"><div style="font-weight:600;font-size:.9rem;color:var(--ink);">' + f.name + '</div>' + (date ? '<div style="font-size:.72rem;color:var(--ink3);">Zuletzt geändert: ' + date + '</div>' : '') + '</div><span style="color:var(--ink3);font-size:.8rem;">→</span>';
+      btn.addEventListener('mouseover', function() { this.style.borderColor='#C49A1A'; });
+      btn.addEventListener('mouseout', function() { this.style.borderColor='#DDD0B8'; });
+      container.appendChild(btn);
+    });
+    html += '</div>';
+    var cancelBtn = document.createElement('button');
+    cancelBtn.textContent = '← Abbrechen';
+    cancelBtn.style.cssText = 'margin-top:.75rem;padding:8px 16px;border-radius:8px;border:1.5px solid #DDD0B8;background:transparent;font-family:DM Sans,sans-serif;font-size:.82rem;cursor:pointer;color:#8A7A62;';
+    cancelBtn.addEventListener('click', cancelDriveSelect);
+    html += cancelBtn.outerHTML;
+  }
+
+  div.innerHTML = html;
+  document.getElementById('sc-start').appendChild(div);
+}
+
+function selectDriveFile(fileId, fileName) {
+  // Entferne Auswahl
+  var sel = document.getElementById('drive-select');
+  if (sel) sel.parentNode.removeChild(sel);
+
+  document.getElementById('load-txt').textContent = 'Lade ' + fileName + '…';
+  showScreen('sc-load');
+
+  driveGet('files/' + fileId + '?alt=media')
+  .then(function(r) { return r.arrayBuffer(); })
+  .then(function(buf) { processFile(buf, fileName); })
+  .catch(function(err) {
+    alert('Fehler beim Laden: ' + err.message);
+    showScreen('sc-start');
+  });
+}
+
+function cancelDriveSelect() {
+  var sel = document.getElementById('drive-select');
+  if (sel) sel.parentNode.removeChild(sel);
+}
+
+// Event Delegation für Drive-Auswahl Buttons
+document.getElementById('sc-start').addEventListener('click', function(e) {
+  var btn = e.target.closest('.drive-file-btn');
+  if (btn) {
+    selectDriveFile(btn.dataset.fid, btn.dataset.fname);
+  }
+});
+
+// ══════════════════════════════════════════
+// SPIELE — HILFSFUNKTIONEN
+// ══════════════════════════════════════════
+
+function getRandom(arr, n) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a.slice(0, n);
+}
+
+function getVokabeln() {
+  return DATA.vokabeln.filter(function(r) {
+    return r['Schwedisch'] && r['Deutsch'];
+  });
+}
+
+// ══════════════════════════════════════════
+// QUIZ
+// ══════════════════════════════════════════
+var QUIZ = { fragen:[], idx:0, score:0, answered:false };
+
+function quizInit() {
+  var vok = getVokabeln();
+  if (vok.length < 4) { document.getElementById('tp-quiz').innerHTML = '<div class="empty"><h3>Zu wenige Vokabeln</h3><p>Mindestens 4 Vokabeln nötig.</p></div>'; return; }
+  QUIZ.fragen = getRandom(vok, Math.min(10, vok.length));
+  QUIZ.idx = 0; QUIZ.score = 0; QUIZ.answered = false;
+  quizShow();
+}
+
+function quizShow() {
+  if (QUIZ.idx >= QUIZ.fragen.length) { quizEnd(); return; }
+  var vok = getVokabeln();
+  var frage = QUIZ.fragen[QUIZ.idx];
+  var richtig = frage['Deutsch'];
+  var sv = frage['Schwedisch'];
+  // 3 falsche Antworten
+  var andere = vok.filter(function(r) { return r['Deutsch'] !== richtig; });
+  var falsche = getRandom(andere, 3).map(function(r) { return r['Deutsch']; });
+  var alle = shuffle([richtig].concat(falsche));
+
+  document.getElementById('quiz-frage').textContent = sv;
+  document.getElementById('quiz-round').textContent = 'Frage ' + (QUIZ.idx+1) + '/' + QUIZ.fragen.length;
+  document.getElementById('quiz-score').textContent = QUIZ.score + ' richtig';
+  document.getElementById('quiz-next').style.display = 'none';
+  QUIZ.answered = false;
+
+  var html = alle.map(function(a) {
+    return '<button class="qa-btn" data-ans="' + esc(a) + '">' + esc(a) + '</button>';
+  }).join('');
+  document.getElementById('quiz-antworten').innerHTML = html;
+}
+
+function quizEnd() {
+  document.getElementById('quiz-frage').textContent = 'Fertig! ' + QUIZ.score + ' von ' + QUIZ.fragen.length + ' richtig 🎉';
+  document.getElementById('quiz-antworten').innerHTML = '';
+  document.getElementById('quiz-next').style.display = 'none';
+}
+
+document.getElementById('quiz-antworten').addEventListener('click', function(e) {
+  var btn = e.target.closest('.qa-btn');
+  if (!btn || QUIZ.answered) return;
+  QUIZ.answered = true;
+  var richtig = QUIZ.fragen[QUIZ.idx]['Deutsch'];
+  var gew = btn.dataset.ans;
+  document.querySelectorAll('.qa-btn').forEach(function(b) {
+    if (b.dataset.ans === richtig) b.classList.add('richtig');
+    else if (b === btn) b.classList.add('falsch');
+    b.disabled = true;
+  });
+  if (gew === richtig) QUIZ.score++;
+  document.getElementById('quiz-score').textContent = QUIZ.score + ' richtig';
+  document.getElementById('quiz-next').style.display = 'inline-block';
+});
+
+document.getElementById('quiz-next').addEventListener('click', function() {
+  QUIZ.idx++;
+  quizShow();
+});
+document.getElementById('quiz-restart').addEventListener('click', quizInit);
+
+// ══════════════════════════════════════════
+// HANGMAN
+// ══════════════════════════════════════════
+var HM = { wort:'', hint:'', gefunden:[], fehler:0, runde:1 };
+var HM_TEILE = ['hm-kopf','hm-koerper','hm-arm-l','hm-arm-r','hm-bein-l','hm-bein-r'];
+var HM_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ'.split('');
+
+function hmInit() {
+  var vok = getVokabeln();
+  if (!vok.length) return;
+  var item = getRandom(vok, 1)[0];
+  HM.wort = (item['Schwedisch'] || '').toUpperCase();
+  HM.hint = item['Deutsch'] || '';
+  HM.gefunden = [];
+  HM.fehler = 0;
+  HM_TEILE.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  document.getElementById('hm-hint').textContent = '🇩🇪 ' + HM.hint;
+  document.getElementById('hm-msg').textContent = '';
+  document.getElementById('hm-msg').style.color = '';
+  hmRenderWort();
+  hmRenderKeys();
+  document.getElementById('hm-fehler').textContent = '0 Fehler';
+  document.getElementById('hm-runde').textContent = 'Runde ' + HM.runde;
+}
+
+function hmRenderWort() {
+  var html = HM.wort.split('').map(function(ch) {
+    if (ch === ' ') return '<span style="width:16px;display:inline-block;"></span>';
+    var zeig = HM.gefunden.indexOf(ch) >= 0 ? ch : '_';
+    return '<span class="hm-buchstabe">' + zeig + '</span>';
+  }).join('');
+  document.getElementById('hm-wort').innerHTML = html;
+}
+
+function hmRenderKeys() {
+  var html = HM_ALPHABET.map(function(ch) {
+    var dis = HM.gefunden.indexOf(ch) >= 0 || HM.fehler >= 6;
+    var cls = '';
+    if (HM.gefunden.indexOf(ch) >= 0) {
+      cls = HM.wort.indexOf(ch) >= 0 ? 'treffer' : 'miss';
+    }
+    return '<button class="hm-key ' + cls + '"' + (dis?' disabled':'') + ' data-ch="' + ch + '">' + ch + '</button>';
+  }).join('');
+  document.getElementById('hm-buchstaben').innerHTML = html;
+}
+
+document.getElementById('hm-buchstaben').addEventListener('click', function(e) {
+  var btn = e.target.closest('.hm-key');
+  if (!btn || btn.disabled || HM.fehler >= 6) return;
+  var ch = btn.dataset.ch;
+  HM.gefunden.push(ch);
+  if (HM.wort.indexOf(ch) < 0) {
+    HM.fehler++;
+    var teil = document.getElementById(HM_TEILE[HM.fehler-1]);
+    if (teil) teil.style.display = '';
+    document.getElementById('hm-fehler').textContent = HM.fehler + ' Fehler';
+  }
+  hmRenderWort();
+  hmRenderKeys();
+  // Prüfe gewonnen/verloren
+  var gewonnen = HM.wort.split('').every(function(ch) {
+    return ch === ' ' || HM.gefunden.indexOf(ch) >= 0;
+  });
+  var msg = document.getElementById('hm-msg');
+  if (gewonnen) { msg.textContent = '🎉 Richtig!'; msg.style.color = 'var(--green)'; }
+  else if (HM.fehler >= 6) { msg.textContent = '❌ Verloren! Das Wort war: ' + HM.wort; msg.style.color = 'var(--red)'; }
+});
+
+document.getElementById('hm-next').addEventListener('click', function() {
+  HM.runde++;
+  hmInit();
+});
+
+// ══════════════════════════════════════════
+// MEMORY
+// ══════════════════════════════════════════
+var MEM = { karten:[], offen:[], gefunden:0, versuche:0, gesperrt:false };
+
+function memInit() {
+  var vok = getVokabeln();
+  var ausw = getRandom(vok, Math.min(8, Math.floor(vok.length/2)));
+  // Je Vokabel 2 Karten: SV + DE
+  var paare = [];
+  ausw.forEach(function(r, i) {
+    paare.push({id:i, seite:'sv', text:r['Schwedisch'], paar:i});
+    paare.push({id:i+100, seite:'de', text:r['Deutsch'], paar:i});
+  });
+  MEM.karten = shuffle(paare);
+  MEM.offen = []; MEM.gefunden = 0; MEM.versuche = 0; MEM.gesperrt = false;
+  document.getElementById('mem-paare').textContent = '0 Paare';
+  document.getElementById('mem-versuche').textContent = '0 Versuche';
+  var html = MEM.karten.map(function(k, idx) {
+    return '<div class="mem-card" data-idx="' + idx + '">' +
+      '<div class="mem-txt">' + esc(k.text) + '</div></div>';
+  }).join('');
+  document.getElementById('mem-grid').innerHTML = html;
+}
+
+document.getElementById('mem-grid').addEventListener('click', function(e) {
+  if (MEM.gesperrt) return;
+  var card = e.target.closest('.mem-card');
+  if (!card || card.classList.contains('offen') || card.classList.contains('gefunden')) return;
+  var idx = parseInt(card.dataset.idx);
+  card.classList.add('offen');
+  MEM.offen.push(idx);
+  if (MEM.offen.length === 2) {
+    MEM.versuche++;
+    document.getElementById('mem-versuche').textContent = MEM.versuche + ' Versuche';
+    var k1 = MEM.karten[MEM.offen[0]], k2 = MEM.karten[MEM.offen[1]];
+    if (k1.paar === k2.paar) {
+      // Treffer
+      MEM.gefunden++;
+      document.getElementById('mem-paare').textContent = MEM.gefunden + ' Paare';
+      document.querySelectorAll('.mem-card.offen').forEach(function(c) { c.classList.add('gefunden'); c.classList.remove('offen'); });
+      MEM.offen = [];
+      if (MEM.gefunden === MEM.karten.length / 2) {
+        setTimeout(function() { alert('🎉 Alle Paare gefunden! ' + MEM.versuche + ' Versuche.'); }, 300);
+      }
+    } else {
+      MEM.gesperrt = true;
+      setTimeout(function() {
+        document.querySelectorAll('.mem-card.offen').forEach(function(c) { c.classList.remove('offen'); });
+        MEM.offen = []; MEM.gesperrt = false;
+      }, 1000);
+    }
+  }
+});
+document.getElementById('mem-neu').addEventListener('click', memInit);
+
+// ══════════════════════════════════════════
+// LÜCKENTEXT
+// ══════════════════════════════════════════
+var LK = { fragen:[], idx:0, score:0, answered:false };
+
+function lkInit() {
+  var texte = DATA.texte.filter(function(r) {
+    var sv = r['Schwedisch (Original)'] || r['Schwedisch'] || '';
+    return sv.split(' ').length > 3;
+  });
+  if (texte.length < 4) { document.getElementById('tp-luecke').innerHTML = '<div class="empty"><h3>Zu wenige Sätze</h3></div>'; return; }
+  LK.fragen = getRandom(texte, Math.min(10, texte.length));
+  LK.idx = 0; LK.score = 0;
+  lkShow();
+}
+
+function lkShow() {
+  if (LK.idx >= LK.fragen.length) { lkEnd(); return; }
+  var vok = getVokabeln();
+  var row = LK.fragen[LK.idx];
+  var sv = row['Schwedisch (Original)'] || row['Schwedisch'] || '';
+  var worte = sv.split(' ');
+  // Wähle zufälliges Wort als Lücke (nicht erstes/letztes)
+  var lPos = Math.floor(Math.random() * (worte.length - 2)) + 1;
+  var richtig = worte[lPos].replace(/[.,!?;:]/g,'');
+  // Ersetze durch Lücke
+  var satzHtml = worte.map(function(w, i) {
+    if (i === lPos) return '<span class="lueck-blank">___</span>';
+    return esc(w);
+  }).join(' ');
+
+  // 3 falsche Antworten aus Vokabeln
+  var falsche = getRandom(vok, 6).map(function(r) { return r['Schwedisch']; })
+    .filter(function(w) { return w !== richtig; }).slice(0, 3);
+  var alle = shuffle([richtig].concat(falsche));
+
+  document.getElementById('lueck-satz').innerHTML = satzHtml;
+  document.getElementById('lueck-runde').textContent = (LK.idx+1) + '/' + LK.fragen.length;
+  document.getElementById('lueck-score').textContent = LK.score + ' richtig';
+  document.getElementById('lueck-next').style.display = 'none';
+  LK.answered = false;
+
+  var html = alle.map(function(a) {
+    return '<button class="qa-btn" data-ans="' + esc(a) + '">' + esc(a) + '</button>';
+  }).join('');
+  document.getElementById('lueck-antworten').innerHTML = html;
+  // Speichere richtige Antwort
+  document.getElementById('tp-luecke').dataset.richtig = richtig;
+}
+
+function lkEnd() {
+  document.getElementById('lueck-satz').textContent = 'Fertig! ' + LK.score + ' von ' + LK.fragen.length + ' richtig 🎉';
+  document.getElementById('lueck-antworten').innerHTML = '';
+}
+
+document.getElementById('lueck-antworten').addEventListener('click', function(e) {
+  var btn = e.target.closest('.qa-btn');
+  if (!btn || LK.answered) return;
+  LK.answered = true;
+  var richtig = document.getElementById('tp-luecke').dataset.richtig;
+  var gew = btn.dataset.ans;
+  document.querySelectorAll('#lueck-antworten .qa-btn').forEach(function(b) {
+    if (b.dataset.ans === richtig) b.classList.add('richtig');
+    else if (b === btn) b.classList.add('falsch');
+    b.disabled = true;
+  });
+  if (gew === richtig) LK.score++;
+  document.getElementById('lueck-score').textContent = LK.score + ' richtig';
+  document.getElementById('lueck-next').style.display = 'inline-block';
+  // Zeige richtige Antwort in Lücke
+  var blank = document.querySelector('.lueck-blank');
+  if (blank) blank.textContent = richtig;
+});
+
+document.getElementById('lueck-next').addEventListener('click', function() { LK.idx++; lkShow(); });
+document.getElementById('lueck-restart').addEventListener('click', lkInit);
+
+// ══════════════════════════════════════════
+// DIKTAT
+// ══════════════════════════════════════════
+var DIK = { saetze:[], idx:0, score:0 };
+
+function dikInit() {
+  var texte = DATA.texte.filter(function(r) {
+    return r['Schwedisch (Original)'] || r['Schwedisch'];
+  });
+  if (!texte.length) { document.getElementById('tp-diktat').innerHTML = '<div class="empty"><h3>Keine Sätze</h3></div>'; return; }
+  DIK.saetze = getRandom(texte, Math.min(10, texte.length));
+  DIK.idx = 0; DIK.score = 0;
+  dikShow();
+}
+
+function dikShow() {
+  if (DIK.idx >= DIK.saetze.length) {
+    document.getElementById('dik-feedback').textContent = 'Fertig! ' + DIK.score + ' von ' + DIK.saetze.length + ' richtig 🎉';
+    document.getElementById('dik-feedback').className = 'dik-feedback ok';
+    return;
+  }
+  document.getElementById('dik-input').value = '';
+  document.getElementById('dik-feedback').textContent = '';
+  document.getElementById('dik-next').style.display = 'none';
+  document.getElementById('dik-runde').textContent = (DIK.idx+1) + '/' + DIK.saetze.length;
+  document.getElementById('dik-score').textContent = DIK.score + ' richtig';
+}
+
+document.getElementById('dik-play').addEventListener('click', function() {
+  if (DIK.idx >= DIK.saetze.length) return;
+  var row = DIK.saetze[DIK.idx];
+  var sv = row['Schwedisch (Original)'] || row['Schwedisch'] || '';
+  speak(sv, 'sv-SE');
+});
+
+document.getElementById('dik-check').addEventListener('click', function() {
+  if (DIK.idx >= DIK.saetze.length) return;
+  var row = DIK.saetze[DIK.idx];
+  var richtig = (row['Schwedisch (Original)'] || row['Schwedisch'] || '').trim().toLowerCase();
+  var eingabe = document.getElementById('dik-input').value.trim().toLowerCase();
+  var fb = document.getElementById('dik-feedback');
+  if (eingabe === richtig) {
+    DIK.score++;
+    fb.textContent = '✅ Richtig!';
+    fb.className = 'dik-feedback ok';
+  } else {
+    fb.textContent = '❌ Richtig wäre: ' + (row['Schwedisch (Original)'] || row['Schwedisch']);
+    fb.className = 'dik-feedback err';
+  }
+  document.getElementById('dik-score').textContent = DIK.score + ' richtig';
+  document.getElementById('dik-next').style.display = 'inline-block';
+});
+
+document.getElementById('dik-next').addEventListener('click', function() { DIK.idx++; dikShow(); });
+document.getElementById('dik-restart').addEventListener('click', dikInit);
+
+// ══════════════════════════════════════════
+// VERB TRAINER
+// ══════════════════════════════════════════
+var VT = { verben:[], idx:0, score:0 };
+
+function vtInit() {
+  if (!DATA.verben.length) { document.getElementById('tp-verbtr').innerHTML = '<div class="empty"><h3>Keine Verben</h3></div>'; return; }
+  VT.verben = getRandom(DATA.verben, Math.min(10, DATA.verben.length));
+  VT.idx = 0; VT.score = 0;
+  vtShow();
+}
+
+function vtShow() {
+  if (VT.idx >= VT.verben.length) {
+    document.getElementById('vt-frage').textContent = 'Fertig! ' + VT.score + ' von ' + VT.verben.length + ' richtig 🎉';
+    document.getElementById('vt-felder').innerHTML = '';
+    return;
+  }
+  var r = VT.verben[VT.idx];
+  var k = Object.keys(r);
+  var grK = k.find(function(x){return x.includes('Grundform');}) || k[1];
+  var deK = k.find(function(x){return x==='Deutsch';}) || k[0];
+  document.getElementById('vt-frage').textContent = (r[deK]||'') + ' → ' + (r[grK]||'');
+  document.getElementById('vt-runde').textContent = (VT.idx+1) + '/' + VT.verben.length;
+  document.getElementById('vt-score').textContent = VT.score + ' richtig';
+  document.getElementById('vt-feedback').textContent = '';
+  document.getElementById('vt-next').style.display = 'none';
+
+  var prK = k.find(function(x){return x==='Präsens';}) || k[2];
+  var ptK = k.find(function(x){return x==='Präteritum';}) || k[3];
+  var suK = k.find(function(x){return x==='Supinum';}) || k[4];
+
+  var felder = [
+    {label:'Präsens', key:prK},
+    {label:'Präteritum', key:ptK},
+    {label:'Supinum', key:suK}
+  ];
+
+  var html = felder.map(function(f) {
+    return '<div class="vt-feld"><label>' + f.label + '</label>' +
+      '<input type="text" data-key="' + esc(f.key) + '" placeholder="' + f.label + '…"/></div>';
+  }).join('');
+  document.getElementById('vt-felder').innerHTML = html;
+}
+
+document.getElementById('vt-check').addEventListener('click', function() {
+  if (VT.idx >= VT.verben.length) return;
+  var r = VT.verben[VT.idx];
+  var inputs = document.querySelectorAll('#vt-felder input');
+  var alleRichtig = true;
+  var fb = '';
+  inputs.forEach(function(inp) {
+    var key = inp.dataset.key;
+    var richtig = (r[key]||'').trim().toLowerCase();
+    var eingabe = inp.value.trim().toLowerCase();
+    if (eingabe === richtig) {
+      inp.className = 'ok';
+    } else {
+      inp.className = 'err';
+      alleRichtig = false;
+      fb += key.split('\n')[0] + ': ' + r[key] + '  ';
+    }
+  });
+  var fbd = document.getElementById('vt-feedback');
+  if (alleRichtig) {
+    VT.score++;
+    fbd.textContent = '✅ Alle richtig!';
+    fbd.className = 'dik-feedback ok';
+  } else {
+    fbd.textContent = '❌ ' + fb;
+    fbd.className = 'dik-feedback err';
+  }
+  document.getElementById('vt-score').textContent = VT.score + ' richtig';
+  document.getElementById('vt-next').style.display = 'inline-block';
+});
+
+document.getElementById('vt-next').addEventListener('click', function() { VT.idx++; vtShow(); });
+document.getElementById('vt-restart').addEventListener('click', vtInit);
+
+// ══════════════════════════════════════════
+// BIRKENBIHL
+// ══════════════════════════════════════════
+var BIRK_MOD = 'passiv';
+
+function birkShow() {
+  var texte = DATA.texte;
+  if (!texte.length) { document.getElementById('birk-box').innerHTML = '<div class="empty"><h3>Keine Texte</h3></div>'; return; }
+
+  var svK = Object.keys(texte[0]).find(function(k){return k.includes('Schwedisch');}) || 'Schwedisch (Original)';
+  var deK = Object.keys(texte[0]).find(function(k){return k.includes('Dekodieru')||k.includes('Deutsch');}) || 'Dekodierung (wortgetreu Deutsch)';
+
+  var html = '';
+  if (BIRK_MOD === 'passiv') {
+    html = '<p style="font-size:.85rem;color:var(--ink3);margin-bottom:1rem;">🎧 Klicke auf einen Satz um ihn vorlesen zu lassen. Entspanne dich dabei.</p>';
+    html += texte.map(function(r, i) {
+      var sv = r[svK]||'', de = r[deK]||'';
+      return '<div class="birk-satz">' +
+        '<div class="bsv">' + esc(sv) + '</div>' +
+        '<div class="bde">' + esc(de) + '</div>' +
+        '<div class="baud"><button class="ab sv" data-bsv="' + esc(sv) + '">🔊🇸🇪</button></div>' +
+        '</div>';
+    }).join('');
+  } else if (BIRK_MOD === 'aktiv') {
+    html = '<p style="font-size:.85rem;color:var(--ink3);margin-bottom:1rem;">📖 Lies mit und klicke auf 🔊 um den Satz zu hören. Lese laut mit!</p>';
+    html += texte.map(function(r, i) {
+      var sv = r[svK]||'', de = r[deK]||'';
+      return '<div class="birk-satz birk-aktiv">' +
+        '<div class="bsv" data-bsv="' + esc(sv) + '">' + esc(sv) + ' <button class="ab sv" data-bsv="' + esc(sv) + '">🔊</button></div>' +
+        '<div class="bde">' + esc(de) + '</div>' +
+        '</div>';
+    }).join('');
+  } else {
+    html = '<p style="font-size:.85rem;color:var(--ink3);margin-bottom:1rem;">🎤 Höre den Satz — dann sprich ihn nach und vergleiche!</p>';
+    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+      html += '<div style="background:var(--red-lt);border:1.5px solid var(--red);border-radius:10px;padding:1rem;margin-bottom:1rem;font-size:.85rem;color:var(--red);">⚠️ Mikrofon-Funktion wird nur in Chrome unterstützt.</div>';
+    }
+    html += texte.map(function(r, i) {
+      var sv = r[svK]||'';
+      return '<div class="birk-satz" id="bsatz-' + i + '">' +
+        '<div style="flex:1;">' +
+        '<div class="bsv">' + esc(sv) + '</div>' +
+        '<div class="birk-fb" id="bfb-' + i + '"></div>' +
+        '</div>' +
+        '<div class="baud" style="display:flex;gap:6px;flex-shrink:0;">' +
+        '<button class="ab sv" data-bsv="' + esc(sv) + '">🔊</button>' +
+        '<button class="birk-mic" data-sv="' + esc(sv) + '" data-idx="' + i + '">🎤</button>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  document.getElementById('birk-box').innerHTML = html;
+
+  document.getElementById('birk-box').addEventListener('click', function(e) {
+    // Audio Button
+    var abtn = e.target.closest('.ab[data-bsv]');
+    if (abtn) { speak(abtn.dataset.bsv, 'sv-SE'); return; }
+    // Mikrofon Button
+    var mic = e.target.closest('.birk-mic');
+    if (mic) { birkSprechen(mic); return; }
+  });
+}
+
+function birkSprechen(btn) {
+  var SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    alert('Mikrofon wird nur in Chrome unterstützt.');
+    return;
+  }
+  var sv = btn.dataset.sv;
+  var idx = btn.dataset.idx;
+  var fb = document.getElementById('bfb-' + idx);
+
+  // Erst den Satz vorlesen
+  speak(sv, 'sv-SE');
+
+  // Nach 2 Sekunden aufnehmen
+  setTimeout(function() {
+    btn.classList.add('aufnahme');
+    btn.textContent = '⏺';
+    fb.textContent = '🎤 Spreche jetzt…';
+    fb.className = 'birk-fb';
+
+    var rec = new SpeechRec();
+    rec.lang = 'sv-SE';
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.maxAlternatives = 3;
+
+    rec.onresult = function(e) {
+      btn.classList.remove('aufnahme');
+      btn.textContent = '🎤';
+      var gesagt = '';
+      for (var i = 0; i < e.results[0].length; i++) {
+        gesagt = e.results[0][i].transcript.trim().toLowerCase();
+        if (gesagt) break;
+      }
+      var original = sv.trim().toLowerCase().replace(/[.,!?;:]/g,'');
+      var gesagtClean = gesagt.replace(/[.,!?;:]/g,'');
+      // Berechne Ähnlichkeit (einfacher Wortvergleich)
+      var origWorte = original.split(' ');
+      var gesWorte = gesagtClean.split(' ');
+      var treffer = origWorte.filter(function(w) {
+        return gesWorte.some(function(g) { return g === w || (g.length > 3 && w.includes(g)); });
+      }).length;
+      var score = Math.round((treffer / origWorte.length) * 100);
+
+      if (score >= 80) {
+        fb.textContent = '✅ Sehr gut! (' + score + '% Übereinstimmung)';
+        fb.className = 'birk-fb ok';
+      } else if (score >= 50) {
+        fb.textContent = '🔄 Fast! Du sagtest: "' + gesagt + '" (' + score + '%)';
+        fb.className = 'birk-fb retry';
+      } else {
+        fb.textContent = '❌ Nochmal versuchen. Du sagtest: "' + gesagt + '"';
+        fb.className = 'birk-fb err';
+      }
+    };
+
+    rec.onerror = function(e) {
+      btn.classList.remove('aufnahme');
+      btn.textContent = '🎤';
+      if (e.error === 'not-allowed') {
+        fb.textContent = '⚠️ Mikrofon-Zugriff verweigert. Bitte in Chrome-Einstellungen erlauben.';
+      } else if (e.error === 'no-speech') {
+        fb.textContent = '🔄 Nichts gehört — bitte nochmal versuchen.';
+      } else {
+        fb.textContent = '⚠️ Fehler: ' + e.error;
+      }
+      fb.className = 'birk-fb err';
+    };
+
+    rec.onend = function() {
+      btn.classList.remove('aufnahme');
+      btn.textContent = '🎤';
+    };
+
+    try { rec.start(); } catch(err) {
+      btn.classList.remove('aufnahme');
+      btn.textContent = '🎤';
+      fb.textContent = '⚠️ Mikrofon konnte nicht gestartet werden.';
+      fb.className = 'birk-fb err';
+    }
+  }, 2000);
+}
+
+['bm-passiv','bm-aktiv','bm-sprechen'].forEach(function(id) {
+  document.getElementById(id).addEventListener('click', function() {
+    document.querySelectorAll('.birk-mod').forEach(function(b){b.classList.remove('active');});
+    this.classList.add('active');
+    BIRK_MOD = id === 'bm-passiv' ? 'passiv' : id === 'bm-aktiv' ? 'aktiv' : 'sprechen';
+    birkShow();
+  });
+});
+
+// ══════════════════════════════════════════
+// SPIELE INITIALISIEREN wenn Tab gewählt
+// ══════════════════════════════════════════
+var spieleInit = {
+  'quiz': false, 'hangman': false, 'memory': false,
+  'luecke': false, 'diktat': false, 'verbtr': false, 'birken': false
+};
+
+document.querySelectorAll('[data-ber="spielen"]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var tab = this.dataset.tab;
+    if (spieleInit[tab]) return;
+    spieleInit[tab] = true;
+    if (tab === 'quiz') quizInit();
+    else if (tab === 'hangman') hmInit();
+    else if (tab === 'memory') memInit();
+    else if (tab === 'luecke') lkInit();
+    else if (tab === 'diktat') dikInit();
+    else if (tab === 'verbtr') vtInit();
+    else if (tab === 'birken') birkShow();
+  });
+});
+
+</script>
+</body>
+</html>
