@@ -1321,7 +1321,7 @@ function loadFromDrive(filename) {
         });
     } else {
       // Alle xlsx-Dateien im Ordner suchen
-      return driveGet("files?q='" + folderId + "' in parents and (name contains '.xlsx' or name contains '.xls')&fields=files(id,name,modifiedTime)&orderBy=name")
+      return driveGet("files?q='" + folderId + "' in parents and mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'&fields=files(id,name,modifiedTime)&orderBy=name")
         .then(function(r) { return r.json(); })
         .then(function(data) {
           return {mode:'select', files: data.files || [], folderId: folderId};
