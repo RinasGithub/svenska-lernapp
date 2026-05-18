@@ -1347,49 +1347,62 @@ function loadFromDrive(filename) {
 }
 
 function showDriveSelect(files) {
-  // Zeige Datei-Auswahl auf dem Start-Screen
   showScreen('sc-start');
 
-  // Entferne alten Auswahl-Bereich falls vorhanden
+  // Entferne alten Auswahl-Bereich
   var old = document.getElementById('drive-select');
   if (old) old.parentNode.removeChild(old);
 
-  var div = document.createElement('div');
-  div.id = 'drive-select';
-  div.style.cssText = 'margin-top:1.5rem;max-width:440px;width:100%;';
+  var wrap = document.createElement('div');
+  wrap.id = 'drive-select';
+  wrap.style.cssText = 'margin-top:1.5rem;max-width:440px;width:100%;';
+
+  var label = document.createElement('div');
+  label.style.cssText = 'font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:.75rem;';
+  label.textContent = '☁️ Thema wählen — Google Drive';
+  wrap.appendChild(label);
 
   if (!files.length) {
-    div.innerHTML = '<div style="background:var(--red-lt);border:1.5px solid var(--red);border-radius:12px;padding:1rem;text-align:center;font-size:.85rem;color:var(--red);">' +
-      '❌ Keine xlsx-Dateien im Ordner "' + FOLDER_NAME + '" gefunden.<br/>' +
-      '<span style="font-size:.78rem;color:var(--ink3);">Lade zuerst eine Excel-Datei auf Drive hoch.</span></div>';
+    var msg = document.createElement('div');
+    msg.style.cssText = 'background:var(--red-lt);border:1.5px solid var(--red);border-radius:12px;padding:1rem;text-align:center;font-size:.85rem;color:var(--red);';
+    msg.innerHTML = '❌ Keine xlsx-Dateien im Ordner "' + FOLDER_NAME + '" gefunden.<br/><span style="font-size:.78rem;color:var(--ink3);">Lade zuerst eine Excel-Datei auf Drive hoch.</span>';
+    wrap.appendChild(msg);
   } else {
-    var html = '<div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:.75rem;">☁️ Thema wählen — Google Drive</div>';
-    var container = document.createElement('div');
-    container.style.cssText = 'display:flex;flex-direction:column;gap:.5rem;';
+    var list = document.createElement('div');
+    list.style.cssText = 'display:flex;flex-direction:column;gap:.5rem;';
+
     files.forEach(function(f) {
-      // Datum formatieren
       var date = f.modifiedTime ? new Date(f.modifiedTime).toLocaleDateString('de-DE') : '';
       var btn = document.createElement('button');
-      btn.className = 'drive-file-btn';
-      btn.dataset.fid = f.id;
-      btn.dataset.fname = f.name;
-      btn.style.cssText = 'display:flex;align-items:center;gap:.75rem;padding:.875rem 1rem;background:var(--white);border:2px solid var(--border);border-radius:12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s;box-shadow:0 2px 8px rgba(28,24,16,0.06);width:100%;';
-      btn.innerHTML = '<span style="font-size:1.5rem;">📊</span><div style="flex:1;"><div style="font-weight:600;font-size:.9rem;color:var(--ink);">' + f.name + '</div>' + (date ? '<div style="font-size:.72rem;color:var(--ink3);">Zuletzt geändert: ' + date + '</div>' : '') + '</div><span style="color:var(--ink3);font-size:.8rem;">→</span>';
-      btn.addEventListener('mouseover', function() { this.style.borderColor='#C49A1A'; });
-      btn.addEventListener('mouseout', function() { this.style.borderColor='#DDD0B8'; });
-      container.appendChild(btn);
+      btn.style.cssText = 'display:flex;align-items:center;gap:.75rem;padding:.875rem 1rem;background:var(--white);border:2px solid var(--border);border-radius:12px;cursor:pointer;text-align:left;font-family:inherit;width:100%;';
+      btn.innerHTML = '<span style="font-size:1.5rem;">📊</span>' +
+        '<div style="flex:1;">' +
+        '<div style="font-weight:600;font-size:.9rem;color:var(--ink);">' + esc(f.name) + '</div>' +
+        (date ? '<div style="font-size:.72rem;color:var(--ink3);">Zuletzt geändert: ' + date + '</div>' : '') +
+        '</div><span style="color:var(--ink3);">→</span>';
+      btn.addEventListener('mouseover', function() { this.style.borderColor = '#C49A1A'; });
+      btn.addEventListener('mouseout', function() { this.style.borderColor = '#DDD0B8'; });
+      // Closure für fileId und fileName
+      (function(fileId, fileName) {
+        btn.addEventListener('click', function() {
+          selectDriveFile(fileId, fileName);
+        });
+      })(f.id, f.name);
+      list.appendChild(btn);
     });
-    html += '</div>';
-    var cancelBtn = document.createElement('button');
-    cancelBtn.textContent = '← Abbrechen';
-    cancelBtn.style.cssText = 'margin-top:.75rem;padding:8px 16px;border-radius:8px;border:1.5px solid #DDD0B8;background:transparent;font-family:DM Sans,sans-serif;font-size:.82rem;cursor:pointer;color:#8A7A62;';
-    cancelBtn.addEventListener('click', cancelDriveSelect);
-    html += cancelBtn.outerHTML;
+    wrap.appendChild(list);
   }
 
-  div.innerHTML = html;
-  document.getElementById('sc-start').appendChild(div);
+  // Abbrechen Button
+  var cancelBtn = document.createElement('button');
+  cancelBtn.textContent = '← Abbrechen';
+  cancelBtn.style.cssText = 'margin-top:.75rem;padding:8px 16px;border-radius:8px;border:1.5px solid #DDD0B8;background:transparent;font-family:inherit;font-size:.82rem;cursor:pointer;color:#8A7A62;';
+  cancelBtn.addEventListener('click', cancelDriveSelect);
+  wrap.appendChild(cancelBtn);
+
+  document.getElementById('sc-start').appendChild(wrap);
 }
+
 
 function selectDriveFile(fileId, fileName) {
   // Entferne Auswahl
