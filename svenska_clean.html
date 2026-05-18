@@ -1283,6 +1283,8 @@ function startDriveLogin() {
           return;
         }
         driveToken = resp.access_token;
+        document.getElementById('load-txt').textContent = 'Suche Dateien…';
+        showScreen('sc-load');
         loadFromDrive(null);
       }
     });
@@ -1321,10 +1323,17 @@ function loadFromDrive(filename) {
         });
     } else {
       // Alle xlsx-Dateien im Ordner suchen
-      return driveGet("files?q='" + folderId + "' in parents and mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'&fields=files(id,name,modifiedTime)&orderBy=name")
+      return driveGet("files?q='" + folderId + "' in parents&fields=files(id,name,modifiedTime,mimeType)&orderBy=name")
         .then(function(r) { return r.json(); })
         .then(function(data) {
-          return {mode:'select', files: data.files || [], folderId: folderId};
+          // Filtere nur xlsx Dateien client-seitig
+          var allFiles = data.files || [];
+          var xlsxFiles = allFiles.filter(function(f) {
+            return f.name && (f.name.toLowerCase().endsWith('.xlsx') || f.name.toLowerCase().endsWith('.xls'));
+          });
+          console.log('Alle Dateien im Ordner:', allFiles.length, allFiles.map(function(f){return f.name;}));
+          console.log('xlsx Dateien:', xlsxFiles.length);
+          return {mode:'select', files: xlsxFiles, folderId: folderId};
         });
     }
   })
@@ -1347,11 +1356,11 @@ function loadFromDrive(filename) {
 }
 
 function showDriveSelect(files) {
-  showScreen('sc-start');
-
   // Entferne alten Auswahl-Bereich
   var old = document.getElementById('drive-select');
   if (old) old.parentNode.removeChild(old);
+  
+  showScreen('sc-start');
 
   var wrap = document.createElement('div');
   wrap.id = 'drive-select';
